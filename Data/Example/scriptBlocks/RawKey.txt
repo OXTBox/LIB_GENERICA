@@ -1,0 +1,90 @@
+-- script block: RawKey (handlers whose names start with "RawKey"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 1
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on rawKeyDown tKey
+   ops.setDebug ("00159 rawKeyDown" && tKey )
+   put "" into gErrorIndent
+   if the tool is not "browse tool" or   the mouseControl is not empty  then pass rawKeyDown
+   set the label of button "theRawKey" to tkey & " = " & numtochar(tkey)
+   	   
+   	   
+   switch tKey
+      case 104 -- H key, center on selected
+         UI.CenterOnSelected
+         UI.ZoomedMap
+         break
+      case 97 -- "A KEY CREATES PATHS FOR CURRENT MOBILE GAME OBJECT"
+         if word 1 of gSelectedObject is "mobile" then
+            UI.TogglePathTool
+            put gGameTool into field "statuslabel"
+         end if
+         break
+      case 65288 -- "DELETE KEY CLEARS CURRENT WAYPOUT OF MOBILE GAME OBJECT."
+         if gGameTool is "mobile" and gPathTooLBool then ClearSelectedPathPoint
+         break
+      case 65289 -- "TAB KEY  = ViSIT PLAYER GAME OBJECTS"
+         put base.getPlayerBaseList(1) into gPlayerBaseList
+         if number of lines of gPlayerBaseList > 1 then
+            put lineOFfset( gGameObjectIndexLabel,gPlayerBaseList)+1 into tNext
+         else
+            put 1 into tNext
+         end if
+         if tNext > number of lines of gPlayerBaseList then put 1 into tNext
+         put line tNext of gPlayerBaseList into  gGameObjectIndexLabel
+         put char 3 to -1 of  gGameObjectIndexLabel into gID
+         Base.select (gGameObjectIndexLabel)
+         --Base.refreshGui gGameObjectIndexLabel
+         UI.zoomedMap
+         break
+      case 65308 -- 'WHEEL DOWN = ZOOM OUT" 
+         ops.setDebug ("65308 KEY" && tKey )
+         UI.clearOffsetXOffsetY
+         subtract 0.05 from gZoomLevel
+         if gZoomLevel <= 0.05 then put 0.05 into gZoomLevel
+         if gZoomLevel <= 0 then put 0 into gMapScale
+         UI.ZoomedMap
+         break
+      case 65309 -- "WHEEL UP = ZOOM IN"
+         ops.setDebug ("65309 KEY" && tKey )
+         UI.clearOffsetXOffsetY
+         add 0.05 to gZoomLevel
+         if gZoomLevel >= 1.25 then put 1.25 into gZoomLevel
+         UI.ZoomedMap
+         break
+      case 101 -- "E KEY" 
+         put the currentSelection of this stack into gSelectedObject
+         if word 1 of gSelectedObject is "base" then
+            GameObject.Data  word 1 of gSelectedObject, word 2 of gSelectedObject
+            GameObject.setPropertyValuesFromData	
+            if gParent = 1 then UI.ToggleSendTo
+         end if
+         break
+      case 117 -- "U KEY"
+         UI.ToggleRendezvousToolBool
+         break
+         --65362 and tKey <= 65364 then pass RawKeyDown
+      case 65361 --"LEFT ARROW"
+         add -8 to gScrollOffsetX
+         UI.zoomedmap
+         break
+      case 65363 --"RIGHT ARROW"
+         add 8 to gScrollOffsetX
+         UI.zoomedmap 
+         break
+      case 65362 -- "UP ARROW"
+         add -8 to gScrollOffsetY
+         Ui.zoomedmap 
+         break
+      case 65364 -- "DOWN ARROW"
+         add 8 to gScrollOffsetY
+         Ui.zoomedmap 
+         break
+   end switch
+   focus button "theRawKey" of stack (the mainStack of this stack)
+   pass rawKeyDown
+end rawKeyDown
+

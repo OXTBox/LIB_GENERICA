@@ -1,0 +1,35 @@
+-- script block: View (handlers whose names start with "View"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 2
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on viewGraphics tType
+ops.setDebug ("00231 viewGraphics" && tType )
+put "" into gErrorIndent
+	   repeat with i = 1 to number of graphics of this stack
+	      set the visibility of graphic i of this stack to (graphic i of this stack is tType)
+   end repeat
+end viewGraphics
+
+on ViewStackImages tBool
+ops.setDebug ("00232 ViewStackImages" && tBool )
+put "" into gErrorIndent
+	   if tBool is true then
+	      put 1 into X
+	      put the left of group "Map" into L
+	      put top of group "scriptBlocks" into T
+	      repeat with i = 1 to number of images of this stack
+	         put the width of image i into W
+	         set the left of image I to L+X
+	         add W to X
+	         set the bottom of image i to T-1
+      end repeat
+	   else
+	      repeat with i = 1 to number of images of this stack
+	         set the bottomleft of image i of this stack to 0,0
+      end repeat
+   end if
+end ViewStackImages
+

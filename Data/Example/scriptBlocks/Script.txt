@@ -1,0 +1,156 @@
+-- script block: Script (handlers whose names start with "Script"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026, GenericaProperties_03182026a
+-- handlers: 8
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on SCRIPT_CARD_appendInitNewGlobals tNewGlobal  -- this maybe deprecated way of doing it? think so 1-28-2024
+   ops.setDebug ("00162 SCRIPT_CARD_appendInitNewGlobals" && tNewGlobal ) -- this maybe deprecated way of doing it? think so 1-28-2024 )
+   put "" into gErrorIndent
+   ask "Set init value of"&&tNewGlobal
+   put it into tInitVal
+   put the script of this stack into tScript
+   put "o"&"n" into gHandlerPrefix
+   put "e"&"n"&"d" into gHandlerSuffix
+   put lineOffset(gHandlerPrefix && "initNewGlobals",tScript) into tStart
+   put lineOffset(gHandlerSuffix && "initNewGlobals",tScript) into tEnd
+   put tab &"-"&"-"&& the long date && the long time into tSuffix
+   if tInitVal is empty or tInitVal is not a number then
+      put line 1 to tStart of tScript & cr&"put" && quote& tInitVal &quote &&"into"&&tNewGlobal &tSuffix& cr & line tStart+1 to -1 of tScript into tmodifiedScript
+   else
+      put line 1 to tStart of tScript & cr&"put" && tInitVal &&"into"&&tNewGlobal &tSuffix& cr & line tStart+1 to -1 of tScript into tmodifiedScript
+   end if
+   SET the script of this stack to tmodifiedScript
+end SCRIPT_CARD_appendInitNewGlobals
+
+on SCRIPT_CARD_insertGlobal
+   ops.setDebug ("00163 SCRIPT_CARD_insertGlobal")
+   put "" into gErrorIndent
+   put the clipboardData["text"] into tCheck
+   if tWord is among the items of the globalNames then exit SCRIPT_CARD_insertGlobal
+   if number of lines of tCheck = 1 and number of words of tCheck = 1 and number of items of tCheck = 1 then 
+      put the script of this stack into tScript
+      put tab &"-"&"-"&& the short date && the long time into tSuffix
+      put "global" &tab& tCheck &tSuffix& cr before tScript
+      SET the script of this stack to tScript
+      appendInitNewGlobals tCheck
+   end if
+end SCRIPT_CARD_insertGlobal
+
+on SCRIPT_GROUP_mouseDown
+   ops.setDebug ("00164 SCRIPT_GROUP_mouseDown")
+   put "" into gErrorIndent
+   put the name of the target into tName
+   if tName is not empty then edit script of tName 
+end SCRIPT_GROUP_mouseDown
+
+------------------------------------------------------------ from GenericaProperties_03182026a
+
+---BEGIN_FIELD_SCRIPTS
+on script_Field_ObjectGeometry_returnInField
+   put line 1 of me into me
+   put "" after line 1 of me
+end Script_Field_ObjectGeometry_returnInField
+
+on script_Field_ObjectGeometry_textChanged
+   if line 1 of me is not a number then put 1 into me
+   ObjectPropertyDimensionChanged (the short name of me)
+end Script_Field_ObjectGeometry_textChanged
+
+--BEGIN_BUTTON_SCRIPTS---
+on SCRIPT_BUTTON_OBJECT_PROPERTY_TOGGLE_MouseUp tButtonName,tBool
+  ObjectPropertyToggleChanged (the short name of me), (the highlite of me)
+end SCRIPT_BUTTON_OBJECT_PROPERTY_TOGGLE_MouseUp
+
+on SCRIPT_CARD_BuildGlobalInit
+   put cr & the script of this stack into tScript
+   filter tScript with "global "&"*"
+   replace  "global" with empty in tScript
+   repeat with i = 97 to 122
+      put filterStackScriptForGlobals(numtochar(i)) & cr after  gGlobalList
+   end repeat
+   filter lines of gGlobalList without empty
+   set the customPropertySet of this card to empty
+   put the global_prefix_ignore_list of this card into gGlobalPrefixIgnoreList
+   if gGlobalPrefixIgnoreList is not empty then
+      repeat for each line tIgnore in gGlobalPrefixIgnoreList
+         filter lines of gGlobalList without tIgnore& "*"
+      end repeat
+   end if
+   
+   put "o"&"n"&&"init"&"NewGlobals" & cr into gGlobalInitBuild  
+   sort gGlobalList
+   repeat for each line L in gGlobalList
+      filter gGlobalInitCatch without L
+      put "" into gGlobalInitCatch
+      switch (char 1 of l)
+         case "b" 
+            put "put false into" && L into  gGlobalInitCatch
+            break
+         case "i"
+            put "put 1 into" && L into  gGlobalInitCatch
+            break
+         case "f"
+            put "put 0 into" && L into  gGlobalInitCatch
+            break
+         case "s"
+            put "put" && quote &L & quote &&"into" && L into gGlobalInitCatch
+            break
+      end switch
+      
+      if gGlobalInitCatch is empty then 
+         put tab & "put" && quote & quote &&  "into" && L & cr after gGlobalInitBuild
+      else
+         put tab & gGlobalInitCatch& cr after gGlobalInitBuild
+      end if
+      put "global" && L & cr after gStackScriptGlobalHeader
+   end repeat
+   
+   put "e"&"n"&"d init"&"NewGlobals" & cr & "---END OF STACK SCRIPT---" after gGlobalInitBuild
+   
+   
+   -- find the init new globals handler at the end of the stack script
+   put the script of this stack into tScript
+   put  "---BEGIN_GLOBAL_INIT---" into gGlobalInitBuildHeader
+   filter lines of tScript without  gGlobalInitBuildHeader
+   put gGlobalInitBuildHeader & cr before gGlobalInitBuild
+   put lineOffset("on"&&"init"&"NewGlobals",tscript)-1 into tInitHandlerLine
+   if tInitHandlerLine <1 then 
+      put cr after line -1 of tInitHandlerLine
+      put -1 into tInitHandlerLine
+   end if
+   
+   -- find the first handler or function in the stack script
+   put lineoffset("on"&space,tScript) into tFirsthandlerLine
+   put lineOffset("function",tScript) into tFirstFunctionLine
+   if tFirsthandlerLine < tFirstFunctionLine then
+      put tFirsthandlerLine into tScriptStartLineNumber
+   else
+      put tFirstFunctionLine into tScriptStartLineNumber
+   end if
+   -- combine the global header with the rest of the script
+   put gStackScriptGlobalHeader & cr &  line tScriptStartLineNumber to tInitHandlerLine of tScript into tScriptWithHeader
+   -- include the new global init handler at the end of the script
+   put  tScriptWithHeader & cr & gGlobalInitBuild into tFinalStackScript
+   
+   -- save it to file in case things go bad
+   put "file:"&specialFolderPath("Documents")&"/stack_script.livecodescript" into tFile
+   put tFinalStackScript into URL tFile
+   
+   set the script of this stack to tFinalStackScript
+end SCRIPT_CARD_BuildGlobalInit
+
+on SCRIPT_CARD_insertGlobal
+   --ops.setDebug "insertGlobal"
+   put the clipboardData["text"] into tCheck
+   if tWord is among the items of the globalNames then exit SCRIPT_CARD_insertGlobal
+   if number of lines of tCheck = 1 and number of words of tCheck = 1 and number of items of tCheck = 1 then 
+      put the script of this stack into tScript
+      put tab &"-"&"-"&& the short date && the long time into tSuffix
+      put "global" && tCheck &tSuffix& cr before tScript
+      SET the script of this stack to tScript
+      send BuildGlobalInit to this card in 100 milliseconds
+   end if
+end SCRIPT_CARD_insertGlobal
+

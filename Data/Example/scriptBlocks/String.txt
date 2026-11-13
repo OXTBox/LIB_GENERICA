@@ -1,0 +1,123 @@
+-- script block: String (handlers whose names start with "String"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 9
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on string.writeClip tFileName
+   ops.setDebug ("00178 string.writeClip" && tFileName )
+   put "" into gErrorIndent
+   if tFileName is not empty then
+      put "file:"&specialFolderPath("Documents") &"/GAD/" &tFileName & ".mms" into tFilepath
+   else
+      put "file:"&specialFolderPath("Documents") &"/GAD/" &the seconds &"_clip.bb" into tFilepath
+   end if
+   put the clipboardData["text"] into URL tFilepath
+end string.writeClip
+
+on string.writeFile tFolder,tFile,tFilecontent
+   ops.setDebug ("00179 string.writeFile" && tFolder &&tFile &&tFilecontent )
+   put "" into gErrorIndent
+   put specialFolderPath("Documents")&"/GAD" into gDefaultDirectory
+   set the defaultFolder to specialFolderPath("Documents")
+   	   
+   if "GAD" is not among the lines of the folders then create folder gDefaultDirectory
+   set the defaultFolder to gDefaultDirectory
+   	   
+   if tFolder is empty then put "debug" into tFolder
+   	   
+   set itemDel to "/"
+   repeat for each item tSubFolder in tFolder
+      	      
+      put "/"& tSubFolder after gDefaultDirectory
+      if tSubFolder is not among the lines of the folders then create folder gDefaultDirectory
+      set the defaultFolder to gDefaultDirectory
+   end repeat
+   	   
+   --ask file  "choose folder to save" 
+   	   
+   if tFolder is empty then
+      put gGameObjectData into tUnderScoredData
+      if tUnderScoredData is empty then put "empty_selection" into tUnderScoredData
+      replace comma with "_" in tUnderScoredData
+      put "file:"& gDefaultDirectory &"/" & the long seconds &"_"& tUnderScoredData & ".sql" into gDebugFilePath
+      put gDebug into URL gDebugFilePath
+      	      
+      put "file:" & gDefaultDirectory &"/"& the short seconds & "_" & tUnderScoredData & "stackscript.livecodescript" into gStackScriptFilePath
+      put "STACK SCRIPT" & cr & cr  & the script of this stack into URL gStackScriptFilePath
+      -- send ops.cleardebug to this stack in 666 milliseconds
+      send ops.clearDebug to this stack in 300 milliseconds
+   else
+      put "file:"& gDefaultDirectory &"/" & tFile & ".livecodescript" into gWriteFilePath
+      put tFileContent into URL gWriteFilePath
+   end if
+end string.writeFile
+
+function string.asItems tWords,DontWant,Want
+ops.setDebug ("00304 string.asItems")
+put "" into gErrorIndent
+	   replace DontWant with Want in tWords
+	   return tWords
+end string.asItems
+
+function string.directorySafeDate
+ops.setDebug ("00305 string.directorySafeDate")
+put "" into gErrorIndent
+	   put the short date into gDate
+	   set itemDel to "/"
+	   put "" into gDirSafeTime
+	   repeat for each item I in gDate
+	      put string.padNumber(I,2) &"_" after gDirSafeTime
+   end repeat
+	   set itemDel to comma
+	   return char 1 to -2 of gDirSafeTime
+end string.directorySafeDate
+
+function string.padNumber tNum,tLen
+--- ops.setDebug ("00306 string.padNumber") !! NOISE
+put "" into gErrorIndent
+	   put number of characters of tNum into tCount
+	   repeat with i = 1 to tLen-tCount
+	      put 0 before tNum
+   end repeat
+	   return tNum
+ end string.padNumber
+
+function string.padString tString,tPadText,tLen
+   --- ops.setDebug ("00306 string.padString") !! NOISE
+   put number of characters of tString into tCount
+   repeat with i = 1 to tLen-tCount
+      put tPadText before tString
+   end repeat
+   return tString
+end string.padString
+
+function string.randomPlayerName
+ops.setDebug ("00307 string.randomPlayerName")
+put "" into gErrorIndent
+	   put "randomPlayerNames()" & cr after gDebug
+	   set the randomSeed to (the seconds)+random(the seconds)*random(the seconds)
+	   --put "tron,sark,clu,flynn,yori" into tempPlayerNames
+	   put item random(number of items of gPlayerNames) of gPlayerNames into gPlayerName
+	   filter items of gPlayerNames without gPlayerName
+	   set the randomSeed to (the seconds)+random(the seconds)*random(the seconds)
+	   return gPlayerName
+end string.randomPlayerName
+
+function string.upchar tUpcharredString,tstart,tend
+ops.setDebug ("00308 string.upchar")
+put "" into gErrorIndent
+	   --ops.setDebug "string.upchar"
+	   put toupper(char tstart to tend of tUpcharredString) into char tstart to tend of tUpcharredString
+	   return tUpcharredString  
+end string.upchar 
+
+function string.repeat tstring1,treps
+   put "" into tstringrepeated
+   repeat with i = 1 to treps
+      put tstring1 before tstringrepeated
+   end repeat
+   return tstringrepeated
+end string.repeat
+

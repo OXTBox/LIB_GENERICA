@@ -1,0 +1,155 @@
+-- script block: List (handlers whose names start with "List"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 9
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on list.commands
+   ops.setDebug ("00123 list.commands")
+   put "" into gErrorIndent
+   put "" into gDebug
+   put the script of this stack into tScript
+   put tScript into tHands1
+   put tScript into tFuns1
+   filter lines of tHands1 with "on "&"*"
+   filter lines of tFuns1 with "function "&"*"
+   put tHands1 & cr & tFuns1 into tFilteredFunctions
+   	   
+   put tFilteredFunctions into gDebug
+   send writeCommands to this stack in 600 milliseconds
+end list.commands
+
+on List.filterGlobalNames tFilter
+   ops.setDebug ("00124 List.filterGlobalNames" && tFilter )
+   put "" into gErrorIndent
+   put globalNames() into tList
+   set itemDel to comma
+   put tList into t1 
+   put tList into t2 
+   put tList into t3
+   filter items of t1 with "*"& tFilter 
+   filter items of t2 with tFilter&"*"
+   filter items of t3 with "*"& tFilter &"*" 
+   put t1 & cr & t2 & cr & t3 into gFilteredGlobalNames
+   replace comma with cr in gFilteredGlobalNames
+   filter lines of gFilteredGlobalNames without empty
+end List.filterGlobalNames
+
+function List.Globals tArg
+   ops.setDebug ("00125 list.Globals" && tArg )
+   put "" into gErrorIndent
+   -- produces a clean list of the globals defined in the stack
+   put the script of stack (the mainStack of this stack) into tScript
+   put lineOffset("--"&"--ENDGLOBALDEFINITION--"&"--",tScript)-1 into ListStop
+   put line 1 to ListStop of tScript into gGlobalsList
+   filter lines of gGlobalsList without empty
+   	   
+   filter lines of gGlobalsList with "global"&"*"
+   --replace "-"&"-" with space in
+   --replace comma with cr in gGlobalsList 
+   replace tab with space in gGlobalsList
+   replace space&space with space in gGlobalsList
+   replace "global" with empty gGlobalsList 
+   	   
+   repeat for each line L in gGlobalsList
+      put word 1 of L & cr after tNewList
+   end repeat
+   put tNewList into gGlobalsList
+   	   
+   filter lines of gGlobalsList without empty
+   if targ is "sort" then
+      sort gGlobalsList
+      repeat for each line L in gGlobalsList
+         put "global" &tab& L & cr after tArgList
+      end repeat
+      return tArgList
+   end if
+   return gGlobalsList
+end List.Globals
+
+function List.GlobalUse
+   ops.setDebug ("00126 list.globaluse")
+   put "" into gErrorIndent
+   put the script of stack (the mainStack of this stack) into tScript
+   put list.globals() into gGlobalsList
+   put gGlobalsList into tBody
+   repeat for each line L in gGlobalsList
+      put tBody into t1
+      put t1 into t2
+      filter lines of t1 with "*"& L&"*" 
+      filter lines of t2 with "*"& L
+      put L & cr & tab& t1 &cr after  tTotalused
+      put number of lines of t1 + number of lines of t2 + number of lines of t3 into tTotaluse
+      put string.PadNumber(tTotalUse,3) &tab& L & cr after gGlobalUseList
+   end repeat
+   	   
+   put lineOffset("--"&"--ENDGLOBALDEFINITION--"&"--",tScript)-1 into ListStop
+   if listStop = 0 then put 1 into ListStop
+   put line ListStop to -1 of tScript into tBody
+   filter lines of tBody with "*g*"
+   sort globalUseOutput numeric ascending
+   repeat for each line L in tBody
+      put L into t1
+      filter t1 with "* g*"
+      put L into t2
+      filter t2 with "*&g*"
+      put t1 & cr & t2 & cr after globalUsedOutput
+   end repeat 
+   filter lines of globalUsedOutput without "* graphic *"
+   filter lines of globalUsedOutput without "* group *"
+   repeat for each line L in tGlobalsList
+      filter lines of globalUsedOutput without "*"&L&"*"
+   end repeat
+   filter lines of globalUsedOutput without empty
+   return globalUseOutput & cr & cr& globalUsedOutput
+end List.GlobalUse --- ???
+
+on list.players
+   ops.setDebug ("00127 list.players")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to "PlayerData"
+   put the customKeys of this stack into gPlayerList
+   sort gPlayerList
+   filter gPlayerList without empty
+   ops.emptydataset
+end list.players
+
+on list.Rendezvous 
+   ops.setDebug ("00128 list.Rendezvous")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to "RendezvousData"
+   put the customKeys of this stack into gRendezvousList
+   ops.emptydataset
+end list.Rendezvous 
+
+function List.Base
+ops.setDebug ("00273 List.Base")
+put "" into gErrorIndent
+	   set the customPropertySet of this stack to "BaseData"
+	   put the customKeys of this stack into gBaseList
+	   filter lines of gBaseList with "b_*"
+	   filter Lines of gBaseList without empty
+	   ops.emptyDataSet
+	   return gBaseList
+end List.Base
+
+function List.GameObjectCurrentGlobalValues
+ops.setDebug ("00274 List.GameObjectCurrentGlobalValues")
+put "" into gErrorIndent
+	   GameObject.Data gGameObjectTypeLabel,gGameObjectIndexLabel
+	   repeat for each item i in gGameObjectProperties
+	      put "put" && i & "&&" &  "g"&i & "&&cr after tResult" & cr after LIST_GAME_OBJECT_CURRENT_GLOBAL_VALUES
+   end repeat
+	   setGameScriptProperty "List","LIST_GAME_OBJECT_CURRENT_GLOBAL_VALUES",LIST_GAME_OBJECT_CURRENT_GLOBAL_VALUES
+	   do LIST_GAME_OBJECT_CURRENT_GLOBAL_VALUES
+	   return tResult
+end List.GameObjectCurrentGlobalValues
+
+function List.PlayerBases gPlayerNumber
+   ops.setDebug ("00277 List.PlayerBases")
+   put "" into gErrorIndent
+   put GameObject.listowned("base",gPlayerNumber) into gPlayerBaseList
+   return gPlayerBaseList
+end List.PlayerBases
+

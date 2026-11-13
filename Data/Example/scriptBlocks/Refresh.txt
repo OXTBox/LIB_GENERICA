@@ -1,0 +1,19 @@
+-- script block: Refresh (handlers whose names start with "Refresh"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 2
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on refreshdefenseUI tArg
+   ops.setDebug ("00160 refreshdefenseUI" && tArg )
+   put "" into gErrorIndent
+   ----!	refreshdefenseUI	IS UNDEFINED!
+end refreshdefenseUI
+
+on refreshpathUI tArg
+   ops.setDebug ("00161 refreshpathUI" && tArg )
+   put "" into gErrorIndent
+   ----!	refreshpathUI	IS UNDEFINED!
+end refreshpathUI
+

@@ -1,0 +1,66 @@
+-- generic graphic script
+-- source: GAD_WORKING_03_16_2026
+-- used by 53 object(s): graphic "b_001" (id 111505); graphic "b_002" (id 111506); graphic "b_003" (id 111507); graphic "b_004" (id 111508); graphic "b_005" (id 111509); graphic "b_006" (id 111510) ...
+-- handlers: mouseDown, mouseUp, fadeFocus, gainFocus
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+--gBaseScriptText
+on mouseDown
+	   ops.setDebug ("00017 mouseDown")
+	   put "" into gErrorIndent
+	   set the clickedObject of this stack to (the gameObjectTypeLabel of me && the short name of me)
+	   if there is an image "Select" then set the currentSelection of image "Select"   to (the gameObjectTypeLabel of me && the short name of me)
+	   --    clearDebug
+	   --send GameObject.selectionCircle to this stack in 60 milliseconds
+	   send Mouse.ClickOnBase to this stack in 30 milliseconds
+	   --send gotomouse to image "select"
+	   if the width of me < 12 then send gainFocus to me in 20 milliseconds
+end mouseDown
+
+on mouseUp
+	   ops.setDebug ("00018 mouseUp")
+	   put "" into gErrorIndent
+	   
+	   if  the mouseLoc is within the rect of me and the width of me < 12 then 
+	      send gainFocus to me in 50 milliseconds
+	   else
+	      send fadeFocus to me in 50 milliseconds
+   end if
+	   ops.emptydataset
+	   set the currentSelection of this stack to (the gameObjectTypeLabel of me && the short name of me)
+	   ops.traceCPropset "mouseUp" 
+end mouseUp
+
+
+on fadeFocus
+	   ops.setDebug ("00015 fadeFocus")
+	   put "" into gErrorIndent
+	   put the loc of me into xy
+	   if word 2 of the currentSelection of this stack is not the short name of me then
+	      set the width of me to 6
+	      set the height of me to 6
+	   else
+	      if the width of me > 6 then
+	         set the width of me to (the width of me)-1
+	         set the height of me to (the height of me)-1
+	         send fadeFocus to me in 50 milliseconds
+      end if
+   end if
+	   set the loc of me to xy
+	   	   
+end fadeFocus
+
+
+on gainFocus
+	   ops.setDebug ("00016 gainFocus")
+	   put "" into gErrorIndent
+	   put the loc of me into xy
+	   set the width of me to (the width of me)+1
+	   set the height of me to (the height of me)+1
+	   set the loc of me to xy
+	   if  the mouseLoc is within the rect of me and the width of me < 12 then 
+	      send gainFocus to me in 50 milliseconds
+	   else
+	      send fadeFocus to me in 50 milliseconds
+   end if
+end gainFocus

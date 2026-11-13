@@ -1,0 +1,15 @@
+-- script block: Select (handlers whose names start with "Select"; GAD scriptBlocks)
+-- source: GenericaProperties_03182026a
+-- handlers: 1
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GenericaProperties_03182026a
+
+-- get the selected line of field "SelectedFileArrayContentListField"
+on SelectedFileArrayContentListFieldPick tLineNumber
+   -- we need to synch some items with the index of other items
+   put line tLineNumber of gSelectedFileArrayKeys into gSelectedFileArrayKeyIndex
+   
+   put line tLineNumber gSelectedFileArrayContentList into gSelectedFileArrayContentSelection
+end SelectedFileArrayContentListFieldPick
+

@@ -1,0 +1,122 @@
+-- script block: Mobile (handlers whose names start with "Mobile"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 9
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on Mobile.clearSelection
+   ops.setDebug ("00134 Mobile.clearSelection")
+   put "" into gErrorIndent
+   set the previousSelection of this stack to gSelectedObject
+   set the currentSelecton of this stack to empty
+   put "" into gMobileID
+   put "" into gMobileIndexLabel 
+   put "" into gMobileData
+   put "" into gMobilePathIndexLabel 
+end Mobile.clearSelection
+
+on Mobile.DepartBase 
+   ops.setDebug ("00135 Mobile.DepartBase")
+   put "" into gErrorIndent
+   set customPropertySet of stack (the mainStack of this stack) to "ProwlerData" 
+   do "put the" && gGameObjectIndexLabel && "of stack (the mainStack of this stack) into gBaseProwlersList"
+   if gMobileIndexLabel  is not among the lines of gBaseProwlersList then exit Mobile.DepartBase
+   filter lines of gBaseProwlersList without gMobileIndexLabel 
+   filter lines of gBaseProwlersList without empty
+   do "set the" && gGameObjectIndexLabel && "of stack (the mainStack of this stack) to gBaseProwlersList"
+end Mobile.DepartBase
+
+on Mobile.refreshGlobals
+   ops.setDebug ("00136 Mobile.refreshGlobals")
+   put "" into gErrorIndent
+   --put cr & "Mobile.refreshGlobals" & cr after gDebug
+   --repeat for each item I in gGameObjectProperties
+   --put "put GameObject.getProperties(" & quote& I & quote & ") into gMobile" & I & cr after gRefreshMobileGlobalsScript
+   --end repeat
+   --do gRefreshMobileGlobalsScript
+   GameObject.setPropertyValuesFromData -- new 1-25-2024
+   put "put m_"&gID &&"into gMobileIndexLabel " & cr into gPostRefreshGlobals 
+   put "put gMobileParent into gPlayerNumber" & cr after gPostRefreshGlobals
+   put "put" && quote & "Player"&gParent & quote &&" into gPlayerName" & cr after gPostRefreshGlobals
+   do gPostRefreshGlobals
+   put gPostRefreshGlobals after gRefreshMobileGlobalsScript
+   -- SAVE THE SCRIPT TO THE STACK
+   setGameScriptProperty "refresh","gRefreshMobileGlobalsScript",gRefreshMobileGlobalsScript
+   GameObject.GlobalsView "mobile"
+   refreshMobileUI gID
+end Mobile.refreshGlobals
+
+on Mobile.refreshGUI
+   ops.setDebug ("00137 Mobile.refreshGUI")
+   put "" into gErrorIndent
+   put "Mobile.refreshGUI" && gMobileIndexLabel  & cr after gDebug
+   put gMobileIndexLabel  into field "SelectedMobileLabel"
+   set the customPropertySet of this stack to MobileData
+   do "put the" && gMobileIndexLabel && "of this stack into gMobileDataArray"
+   ops.emptyDataSet
+   put gMobileIndexLabel into gMobilePathIndexLabel
+   put "p" into char 1 of gMobilePathIndexLabel
+   set the customPropertySet of this stack to "PathData"
+   do "put the" && gMobilePathIndexLabel && "of this stack into gMobilePathOriginPoints"
+   ops.emptyDataSet
+   put floorData(gMobilePathOriginPoints) into field "MobileListField"
+   put "Life:" && item itemOffset("life",gGameObjectProperties) of gGameObjectData into field "MobileLifeLabel"
+   put "Level:" && item itemOffset("level",gGameObjectProperties) of gGameObjectData into field "MobileLifeLabel"
+   put gMobileDataArray[gMobileIndexLabel ] into field "GameObjectProperties"
+   set the disabled of button "ClearPathPoint" to (selectedLine of field "MobileListField" is empty)
+   replace comma with cr in field "GameObjectProperties"
+end Mobile.refreshGUI
+
+on Mobile.select tMobileIndex
+   ops.setDebug ("00138 Mobile.select" && tMobileIndex )
+   put "" into gErrorIndent
+   if gMobileIndexLabel  is not empty and there is a graphic gMobileIndexLabel  then set the lineSize of graphic gMobileIndexLabel  to 1
+   put tMobileIndex into gMobileIndexLabel 
+   put "mobile" && gMobileIndexLabel  into gSelectedObject
+   if gMobileIndexLabel  is not empty and there is a graphic gMobileIndexLabel  then set the lineSize of graphic gMobileIndexLabel  to 3
+   HandleMobileClicks
+end Mobile.select
+
+on Mobile.viewAllData
+   ops.setDebug ("00140 Mobile.viewAllData")
+   put "" into gErrorIndent
+   -- commented out put Mobile.getAllData() into what
+end Mobile.viewAllData
+
+function Mobile.getAllData
+ops.setDebug ("00293 Mobile.getAllData")
+put "" into gErrorIndent
+	   set the customPropertySet of this stack to "MobileData"
+	   put the customKeys of this stack into gMobileDataArray
+	   filter lines of gMobileDataArray without empty
+	   repeat for each line gMobileIndexLabel  in gMobileDataArray
+	      put gMobileIndexLabel  & comma & the gMobileIndexLabel  of this stack & cr after gAllMobileData
+   end repeat 
+	   ops.emptyDataSet
+	   return gAllMobileData
+end Mobile.getAllData
+
+function Mobile.getData tIndex-- DEPRECATE FOR GAME OBJECT DATA? MaybeNot
+ops.setDebug ("00294 Mobile.getData")
+put "" into gErrorIndent
+	   set the customPropertySet of this stack to MobileData
+	   put the tIndex of this stack into gMobileDataArray
+	   ops.emptyDataSet
+	   return gMobileDataArray
+end Mobile.getData
+
+function Mobile.List 
+   ops.setDebug ("00295 Mobile.List")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to MobileData
+   put the customKeys of this stack into gMobileObjectList
+   ops.emptyDataSet
+   filter gMobileObjectList without "d_*"
+   put gMobileObjectList into checkForBs
+   filter checkForBs with "b_*"
+   if  checkForBs is not empty then ops.setDebug("ALERT BASE FOUND IN gMobileObjectList via Mobile.List!!" &cr& checkForbs &cr)
+   filter gMobileObjectList without "b_*"   -- no bases unless we want bases
+   return gMobileObjectList
+end Mobile.List
+

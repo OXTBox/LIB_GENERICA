@@ -1,0 +1,54 @@
+-- script block: Menu (handlers whose names start with "Menu"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 3
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on Menu.PickCopyPasteUndoMenuButton myPick
+   ops.setDebug ("00131 Menu.PickCopyPasteUndoMenuButton" && myPick )
+   put "" into gErrorIndent
+   switch myPick
+      case "copy"
+         set the clipboardData["text"] to the copyTextLine of this stack
+         break
+      case "paste"
+         break
+      case "undo"
+         break
+   end switch
+end Menu.PickCopyPasteUndoMenuButton
+
+on Menu.PickDeveloper myPick
+   ops.setDebug ("00132 Menu.PickDeveloper" && myPick )
+   put "" into gErrorIndent
+   switch myPick
+      case "End Turn"
+         break
+      case "End Turn X"
+         ask "Number of turns" 
+         if it is not empty then 
+            then send EndTurnXStart && it to button "EndTurn"
+         end if
+         break
+      case "Get Script"
+         ask "Filter the script for..."
+         if it is not empty then send CollectScript && it to button "Utility"
+         break
+      case "ScriptBlocks|Compile"
+         send compileScriptBlocks to button "utility"
+         break
+      case "ScriptBlocks|Toggle"
+         send viewScriptBlocks to button "view"
+         break
+   end switch
+end Menu.PickDeveloper
+
+on Menu.PickProductionType myLine
+   ops.setDebug ("00133 Menu.PickProductionType" && myLine )
+   put "" into gErrorIndent
+   put myLine+1 into gBuild 
+   GameObject.build gBuild
+   UI.refreshBase
+end Menu.PickProductionType 
+

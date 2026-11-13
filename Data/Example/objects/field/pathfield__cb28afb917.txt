@@ -1,0 +1,15 @@
+-- generic field script
+-- source: GenericaProperties_03182026a
+-- used by 1 object(s): field "pathfield" (id 1008)
+-- handlers: mouseDown, mouseUp
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseDown
+   set  the width of me to the width of this stack  - the right of button 1 
+   set the left of me to the right of button 1 +1
+end mouseDown
+
+on mouseUp
+   set  the width of me to the width of button 1
+   set the right of me to the width of this stack  -1
+end mouseUp

@@ -1,0 +1,15 @@
+-- generic button script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): button "New Game" (id 1666)
+-- handlers: mouseUp
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseUp
+put the customPropertySets of this stack into tStackList
+filter lines of tStackList without "Player"&"*"
+set the customPropertySets of this stack to tStackList
+set the customPropertySet of this stack to empty
+set the customKeys of this stack to empty
+initApp
+initnewGame
+end mouseUp

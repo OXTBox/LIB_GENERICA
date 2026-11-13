@@ -1,0 +1,12 @@
+-- script block: Define (handlers whose names start with "Define"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 1
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on defineGameObjectProperties
+   ops.setDebug ("00031 defineGameObjectProperties")
+   put "" into gErrorIndent
+end defineGameObjectProperties
+

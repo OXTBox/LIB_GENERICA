@@ -1,0 +1,285 @@
+-- script block: Set (handlers whose names start with "Set"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 14
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on setCardScript
+   ops.setDebug ("00165 setCardScript")
+   put "" into gErrorIndent
+   put the script of this stack into tStackScript
+   put tStackScript into tFilteredList
+   filter lines of tFilteredList with "on SCRIPT_CARD_"&"*"
+   --put tFilteredList
+   repeat for each line L in tFilteredList
+      put lineOffset(word 2 of L,tStackScript) into tStart
+      put lineOffset("end" && word 2 of L,tStackScript) into tEnd
+      put line tStart to tEnd of tStackScript & cr & cr after tCardScript
+   end repeat
+   replace "SCRIPT_CARD_" with empty in tCardScript
+   --put tCardScript
+   lock messages
+   set the script of this card to tCardScript
+   unlock messages
+end setCardScript
+
+on setGameScriptProperty tArrayName,tScriptName,tScriptData
+   ops.setDebug ("00166 setGameScriptProperty" && tArrayName &&tScriptName && "tScriptData <-- reduced noise here" )
+   put "" into gErrorIndent
+   SET the customPropertySet of this stack to "GameScript"
+   put the tArrayName of this stack into tArray
+   put tScriptData into tArray[tScriptName]
+   set the tArrayName of this stack to tArray
+   ops.emptyDataSet
+end setGameScriptProperty
+
+on setGlobalDefinitionsScript
+   ops.setDebug ("00167 setGlobalDefinitionsScript")
+   put "" into gErrorIndent
+   put the script of this stack into gGlobalDefinitions
+   filter lines of gGlobalDefinitions with "global"&"*"
+   replace "global" & tab with "global"& space in gGlobalDefinitions
+   replace "global" & space&space with "global"& space in gGlobalDefinitions
+   replace "global" & space with "global"& tab in gGlobalDefinitions
+   sort gGlobalDefinitions
+   put "--"&"--BEGINGLOBALDEFINITION----" &tab && the short date && the long time &cr before gGlobalDefinitions
+   put "--"&"--ENDGLOBALDEFINITION----" &tab && the short date && the long time & cr after gGlobalDefinitions
+end setGlobalDefinitionsScript
+
+on setGlobalscriptBlockButtonScript
+   ops.setDebug ("00168 setGlobalscriptBlockButtonScript")
+   put "" into gErrorIndent
+   setGlobalDefinitionsScript
+   if there is a button "global" then set the script of button "global" to gGlobalDefinitions
+end setGlobalscriptBlockButtonScript
+
+on setHandlerEditHeader
+   ops.setDebug ("00169 setHandlerEditHeader")
+   put "" into gErrorIndent
+   put the clipboardData["text"] into tHandler
+   if tHandler is empty then exit setHandlerEditHeader
+   put lineoffset("on ",tHandler) into n
+   if n = 0 then put lineoffset("function ",tHandler) into n
+   if n = 0 then exit setHandlerEditHeader
+   put word 2 of line n of tHandler into tHandlerName
+   	   
+   set the customPropertySet of this stack to StackEdits
+   	   
+   put the number of lines of the customKeys of this stack + 1 into gHandlerEditCount
+   	   
+   put "-"&"-"&"-"&"-" into tEditingLinePrefix
+   filter lines of tHandler without tEditingLinePrefix&"*"
+   put toupper(tHandlerName) into tHandlerCaps
+   put tEditingLinePrefix& "END"&tHandlerCaps &&"_EDITING @" & gCurrentEditIndexLabel &"|"& the long time &cr into tEndOfEditFooter
+   	   
+   -- ONE LINE for the ending
+   if number of lines of tHandler = 1 then
+      put tEditingLinePrefix &"END"&tHandlerCaps&tEndOfEditFooter into gGameClipboardText
+      set the clipBoardData["text"] to gGameClipboardText
+   else
+      	      
+      put the customKeys of this stack into gEditHistoryList
+      filter gEditHistoryList with tHandlerName&"_*"
+      put number of lines of gEditHistoryList+1 into gHandlerVistedCount
+      put tHandlerName&"_"&string.PadNumber(gHandlerVistedCount,3) into gCurrentEditIndexLabel
+      	      
+      	      
+      -- set debug
+      if word 1 of line n+1 of tHandler is not "ops.setDebug" then
+         put line 1 to n of tHandler& cr &"ops.setDebug" &&quote& tHandlerName &quote& cr & line n+1 to -1 of tHandler into tHandler
+      end if
+      	      
+      -- OR WHOLE HANDLER
+      filter lines of tHandler without "--" & "--" & "*"
+      put tEditingLinePrefix & tHandlerCaps && "_EDITING @" & gCurrentEditIndexLabel into tEditHeader
+      put tEditHeader & cr & tHandler & cr & tEndOfEditFooter into gGameClipboardText
+      	      
+   end if
+   put quote & tHandlerName &tab& the long time & the long date & quote into tEditNote
+   --put tEditNote into tEditPropertyArray[gCurrentEditIndex]
+   --set the Edits of this stack to tEditPropertyArray
+   do "set the" && gCurrentEditIndexLabel &&"of this stack to tEditNote" 
+   set the clipBoardData["text"] to gGameClipboardText
+   ops.emptyDataSet
+end setHandlerEditHeader
+
+on setHandlerPropertyClear
+   ops.setDebug ("00170 setHandlerPropertyClear")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to Developer
+   set the customKeys of this stack to empty
+   ops.emptyDataSet
+end setHandlerPropertyClear
+
+on setMapCenterXY tArg
+   ops.setDebug ("00171 setMapCenterXY" && tArg )
+   put "" into gErrorIndent
+   put 0 into gMapCenterX
+   put 0 into gMapCenterY
+   set the customPropertySet of this stack to "BaseData"
+   put the customKeys of this stack into gBaseList
+   ops.emptyDataSet
+   list.rendezvous
+   put cr & gRendezvousList after gBaseList
+   filter lines of gBaseList without empty
+   repeat for each line  gGameObjectIndexLabel in gBaseList
+      if there is not a graphic  gGameObjectIndexLabel then next repeat
+      put the loc of graphic  gGameObjectIndexLabel of stack (the mainStack of this stack) into tLoc
+      add item 1 of tLoc to gMapCenterX
+      add item 2 of tLoc to gMapCenterY
+      	      
+      if tArg is "init" then set the originXY of graphic  gGameObjectIndexLabel of stack (the mainStack of this stack) to tLoc
+   end repeat
+   	   
+   divide gMapCenterX by the number of graphics of stack (the mainStack of this stack)
+   divide gMapCenterY by the number of graphics of stack (the mainStack of this stack)
+   put gMapCenterX & cr & gMapCenterY & cr after gDebug
+end setMapCenterXY
+
+on setMobilePath
+   ops.setDebug ("00172 setMobilePath")
+   put "" into gErrorIndent
+   lock screen
+   ops.emptyDataSet
+   put the mouseLoc into mXY
+   put mxy && the short name of the target into field "statusLabel"
+   	   
+   put GetRelativeLocFromObjects(gMobileIndexLabel ,mXY,gZoomLevel) into tRelativeLoc
+   put the originXY of graphic gMobileIndexLabel  into tPenXY
+   add item 1 of tRelativeLoc to item 1 of tPenXY
+   add item 2 of tRelativeLoc to item 2 of tPenXY 
+   	   
+   set the customPropertySet of this stack to "PathData"
+   put "p" & char 2 to -1 of gMobileIndexLabel  into gMobilePathIndexLabel
+   put "p" into char 1 of gMobilePathIndexLabel 
+   do "put the" && gMobilePathIndexLabel && "of this stack into gMobilePathPoints"
+   if gMobilePathPoints is empty then put the originXY of graphic gMobileIndexLabel  into gMobilePathPoints	
+   put cr & tPenXY after gMobilePathPoints
+   	   
+   filter lines of gMobilePathPoints without empty
+   do "set the" && gMobilePathIndexLabel && "of this stack to gMobilePathPoints"
+   if there is not a graphic gMobilePathIndexLabel then UI.createPathGraphic
+   set the points of graphic gMobilePathIndexLabel to gMobilePathPoints
+   put floorData(gMobilePathPoints) into UI.toggleSendToPathVisible
+   put the DisplayPathPoints of graphic gMobilePathIndexLabel into tDisplayPoints
+   if tDisplayPoints is empty then put gMobilePathPoints into tDisplayPoints
+   put cr & tPenXY after tDisplayPoints
+   if the gameObjectTypeLabel of the target is "base" then put the short name of the target into line -1 of tDisplayPoints
+   set the DisplayPathPoints of graphic gMobilePathIndexLabel to tDisplayPoints
+   put tDisplayPoints into field "MobileListField"	
+   ops.emptyDataSet
+   set the lineSize of graphic gMobilePathIndexLabel to 2
+   set the blendLevel of graphic gMobilePathIndexLabel to 10
+   unlock screen
+end setMobilePath
+
+on setPropertySet tName, tObjectName
+   ops.setDebug ("00174 setPropertySet" && tName && tObjectName )
+   put "" into gErrorIndent
+   if tName is not empty then
+      put tName into gDataSetName
+      if tObjectName is not empty then
+         set the customPropertySet of tObjectName to gDataSetName
+      else
+         set the customPropertySet of this stack to gDataSetName
+      end if
+   else
+      ops.emptyDataSet
+   end if
+end setPropertySet
+
+on setRandomGameObjectName --Probably useless maybe 1-25-2024
+   ops.setDebug ("00175 setRandomGameObjectName"  )--Probably useless maybe 1-25-2024 )
+   put "" into gErrorIndent
+   set the randomSeed to the seconds
+   put string.PadNumber(random(gNumberOfGameObjects),3) into gID
+   put "base,defense,expand,mobile,offense,rendezvous,service" into gGameObjectsSelectableItems
+   put item (random(number of items of gGameObjectsSelectableItems)) of gGameObjectsSelectableItems into gGameObjectTypeLabel
+   put char 1 of gGameObjectTypeLabel&"_" & gID into gGameObjectIndexLabel
+   put gGameObjectTypeLabel && gGameObjectIndexLabel into gSelectedObject
+   return gSelectedObject
+end setRandomGameObjectName
+
+on setUtilityscriptBlockButtonScript 
+   ops.setDebug ("00176 setUtilityscriptBlockButtonScript")
+   put "" into gErrorIndent
+   put the script of this stack into tScript
+   repeat for each line L in gUtilityFunctions
+      put "" into gErrorIndent
+      put word 2 of L into tTarget
+      put lineOffset(L,tScript) into tStart
+      put lineOffset("end"&& tTarget,tScript) into tEnd
+      put "-- "&&tTarget&cr&line tStart to tEnd of tScript & cr&cr after tCopy
+   end repeat
+   set the clipboardData["text"] to tCopy
+   if there is not a button "utility" then create button "utility"
+   set the script of button "utility" to tCopy
+end setUtilityscriptBlockButtonScript
+
+on setWholeBaseData gGameObjectIndexLabel 
+   ops.setDebug ("00177 setWholeBaseData" && gGameObjectIndexLabel )
+   put "" into gErrorIndent
+   ops.setDebug( "setWholeBaseData gGameObjectIndexLabel" && quoted(gGameObjectIndexLabel) &&"to"&& gGameObjectData)
+   set the customPropertySet of this stack to "BaseData"
+   do "set the"&& gGameObjectIndexLabel  &&" of this stack to gGameObjectData"
+   ops.emptyDataSet
+end setWholeBaseData
+
+function setMapCenterXYFromObject tObject
+ops.setDebug ("00301 setMapCenterXYFromObject")
+put "" into gErrorIndent
+	   do "put loc of" && tObject &&"into gMapCenterXY"
+	   put item 1 of gMapCenterXY into gMapX
+	   put item 2 of gMapCenterXY into gMapY
+	   return gMapCenterXY
+end setMapCenterXYFromObject 
+
+function setOffsetXY x,y,tMapX,tMapY
+ops.setDebug ("00302 setOffsetXY")
+put "" into gErrorIndent
+	   -- Calculate the offset between the selected object's initial location and gMapX,gMapY
+	   put (x - tMapX) into gOffsetX
+	   put (y - tMapY) into gOffsetY
+	   set the customPropertySet of this stack to "BaseData"
+	   put the customKeys of this stack into gMapObjects
+	   --list.rendezvous
+	   put Mobile.list() & cr & gRendezvousList & cr before gMapObjects
+	   filter lines of gMapObjects without empty
+	   -- --Adjust the location of all the other objects on the map
+	   repeat for each line tGraphicName in gMapObjects
+	      if there is a graphic tGraphicName of this stack then
+	         put the loc of graphic tGraphicName of this stack into tLoc
+	         --put the originXY of graphic tGraphicName of this stack into tLoc
+	         put (item 1 of tLoc - gOffsetX) into tNewX
+	         put (item 2 of tLoc - gOFfsetY) into tNewY
+	         set the loc of graphic tGraphicName of this stack to item 1 of tLoc - gOffsetX,item 2 of tLoc - gOffsetY
+	         put loc of graphic tGraphicName of this stack is within the rect of group "map" of this stack into tVis
+	         set the visible of graphic tGraphicName of this stack to tVis
+      end if
+   end repeat
+	   --offset path data
+	   set the customPropertySet of this stack to "PathData"
+	   put the customKeys of this stack into gPathList
+	   filter lines of gPathList without empty
+	   put empty into tNewPoints
+	   repeat for each line tPath in gPathList
+	      do "put the" && tPath&&"of this stack into tPointsList"
+	      filter lines of tPointsList without empty
+	      put empty into tNewPoints
+	      if tPointsList is not empty then
+	         set itemDel to comma
+	         repeat for each line tPoints in tPointsList
+	            put (((item 1 of tPoints - tMapX) * gZoomLevel) + tMapX)- gOffsetX into tNewX
+	            put (((item 2 of tPoints - tMapY) * gZoomLevel) + tMapY)- gOffsetY into tNewY
+	            put tNewX &comma & tNewY & cr after tNewPoints
+         end repeat
+	         filter lines of tNewPoints without empty
+      end if
+	      if there is a graphic tPath then set the points of graphic tPath to tNewPoints
+   end repeat
+	   ops.emptyDataSet
+	   -- Return the offset values
+	   return gOffsetX,gOffsetY
+end setOffsetXY
+

@@ -1,0 +1,165 @@
+-- script block: Update (handlers whose names start with "Update"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026, GenericaProperties_03182026a
+-- handlers: 6
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on UpdateListFields tPlayerNumber
+ops.setDebug ("00226 UpdateListFields" && tPlayerNumber )
+put "" into gErrorIndent
+	   if tPlayerNumber is empty then put 1 into tPlayerNumber
+	   put tPlayerNumber into gPlayerNumber
+	   put "UpdateListFields" && tPlayerNumber & cr after gDebug
+	   put tPlayerNumber into gPlayerNumber
+	   put "Player"& tPlayerNumber into gPlayerName
+	   do "set the customPropertySet of this stack to"&&gPlayerName
+	   put the customKeys of this stack into gPlayersProperties
+	   put the base of this stack into gPlayerBaseArray
+	   put the keys of gPlayerBasearray into gPlayerBaseList
+	   --put the hilitedLine of field "baseList" into N
+	   lock screen
+	   filter lines of gPlayerBaseList without empty
+	   --put gPlayerBaseList into field "baselist"
+	   if gPlayerBaseList is not empty then
+	      --if number of lines of gPlayerBaseList >= N then 
+	      --set the hilitedLine of field "baseList" to N
+	      --else
+	      --set the hilitedLine of field "baseList" to 1
+	      --end if
+	      unlock screen
+	      put line N of gPlayerBaseList into tBaseIndex
+	      set itemDel to "_"
+	      if number of items of tBaseIndex > 1 then put item 2 of tBaseIndex into gID
+   end if
+	   
+	   set the customPropertySet of this stack to "BaseData"
+	   do "put the b_"& gID && "of this stack into tArray"
+	   put tArray["prowlers"] into gShipsArray
+	   
+	   put the keys of gShipsArray into gShipList
+	   --put gShipList into field "Defense"
+	   put "UpdateListFields" && gPlayerNumber,gplayerName,gID,gShipList & cr after gDebug
+	   ops.emptyDataSet
+end UpdateListFields 
+
+on updateMobileFields
+ops.setDebug ("00227 updateMobileFields")
+put "" into gErrorIndent
+	   put "updateMobileFields" && gMobileIndexLabel  & cr after gDebug
+	   put gMobileIndexLabel  into field "SelectedMobileLabel"
+	   set the customPropertySet of this stack to "MobileData"
+	   do "put the" && gMobileIndexLabel  && "of this stack into gMobileDataArray"
+	   ops.emptyDataSet
+	   put gMobileIndexLabel  into gMobilePathIndex
+	   put "p" into char 1 of gMobilePathIndex
+	   set the customPropertySet of this stack to "PathData"
+	   do "put the" && gMobilePathIndexLabel && "of this stack into gMobilePathOriginPoints"
+	   ops.emptyDataSet
+	   put floorData(gMobilePathOriginPoints) into field "MobileListField"
+	   put "Life:" && item itemOffset("life",gGameObjectProperties) of gGameObjectData into field "MobileLifeLabel"
+	   put "Level:" && item itemOffset("level",gGameObjectProperties) of gGameObjectData into field "MobileLifeLabel"
+	   put gMobileDataArray[gMobileIndexLabel ] into field "GameObjectProperties"
+	   set the disabled of button "ClearPathPoint" to (selectedLine of field "MobileListField" is empty)
+	   replace comma with cr in field "GameObjectProperties"
+end updateMobileFields
+
+on updateMobilePath tPoints
+ops.setDebug ("00228 updateMobilePath" && tPoints )
+put "" into gErrorIndent
+	   put "updateMobilePath" && cr & tPoints & cr after gDebug
+	   put line 1 of field "mobproperties" of stack (the mainStack of this stack)  into gMobileData
+	   if gMobileData is empty then exit updateMobilePath
+	   set the customPropertySet of stack (the mainStack of this stack) to "BaseData"
+	   put item 1 of gMobileData into gSelectedMobIndex
+	   do "put the m_"& gSelectedMobIndex && "of stack (the mainStack of this stack) into tArray"
+	   put tPoints into tArray["path"]
+	   do "set the m_"& gSelectedMobIndex && "of stack (the mainStack of this stack) to tArray"
+	   ops.emptyDataSet
+end updateMobilePath
+
+on UpdatePlayerList gPlayerName
+ops.setDebug ("00229 UpdatePlayerList" && gPlayerName )
+put "" into gErrorIndent
+	   Deprecate "UpdatePlayerList","has no useful function as players are a property"
+	   --   put gPlayerName & cr after gPlayerList
+	   --   set the customPropertySet of this stack to "GameData"
+	   --   set the PlayerList of this stack to gPlayerList
+	   --   ops.emptyDataSet
+end UpdatePlayerList
+
+on UpdateSendToPath
+ops.setDebug ("00230 UpdateSendToPath")
+put "" into gErrorIndent
+	   try
+	      put the sendToSource of graphic "SendTopath" into tSourceName
+	   catch errorVariable
+	   finally
+	      if there is not a graphic  gGameObjectIndexLabel then 
+	         exit UpdateSendToPath
+      end if
+   end try
+	   
+	   if GameObject.getIndexInvalid(gGameObjectIndexLabel) then
+	      if there is a graphic "SendTopath" then
+	         set the sendToDestination of graphic "SendTopath" to empty
+	      else 
+	         	
+      end if
+	      
+	      if there is a graphic gGameObjectIndexLabel then
+	         set the sendTo of graphic  gGameObjectIndexLabel to empty
+	      else
+      end if
+	      exit UpdateSendToPath
+   end if
+	   
+	   put the sendTo of graphic  gGameObjectIndexLabel into gSendTo
+	   if gSendto is empty then put 0 into gSendTo
+	   GameObject.setDataToPropertyGlobals
+	   
+	   
+	   if gSendTo is empty or gSendTo is 0 then 
+	      set the points of graphic "SendToPath" to empty
+	      exit UpdateSendToPath
+   end if
+	   GameObject.SelectedObject
+	   UpdateBaseFields gID
+	   put the loc of graphic tsourceName into tSendToPathPoints
+	   put item 1 of the loc of graphic gSendTo into x
+	   put item 2 of the loc of graphic gSendTo into y
+	   if x< left of group "map" then put left of group "map" into x
+	   if y < top of group "map" then put top of group "map" into y
+	   if x> right of group "map" then put right of group "map" into x
+	   if y > bottom of group "map" then put bottom of group "map" into y
+	   put cr & x & comma & y after tSendToPathPoints
+	   set the points of graphic "SendToPath" to tSendToPathPoints
+	   set the visible of graphic "SendToPath" to (bSendToBool and gParent = 1)
+end UpdateSendToPath
+
+------------------------------------------------------------ from GenericaProperties_03182026a
+
+on updateUIPropertiesDataFromControls
+   if gSelectedFileArrayKeyIndex is empty then exit updateUIPropertiesDataFromControls
+   put "" into gCurrentPropertiesStates
+   --- update the globals after making changes
+   -- iterate over the geometry fields
+   repeat for each item I in gButtonPropertyGeometryFields
+      do "put field"&& quote & I&   "field" &quote&&"into g" &I
+      do "put" && quoted(I) && "&& g"&I  && "&cr after gCurrentPropertiesStates" 
+   end repeat
+   
+   -- iterate over all the toggle buttons  and collect their state into the array
+   repeat for each item I in gButtonPropertyBoolItems
+      do  "put  hilite of button" &&  I  &"checkBox into g" & I
+      put "put hilite of button" && i &"checkBox into gCurrentUITarget[" & I &"]" & cr after  tCom
+      put I && hilite of button (i &"checkbox") && cr after gCurrentPropertiesStates
+   end repeat
+   do tcom
+   
+   if gSelectedFileArrayKeyIndex is not empty then
+      put gCurrentPropertiesStates into gSelectedUIArray[gSelectedFileArrayKeyIndex]
+      do "set the" && gSelectedSourceDirectoryFile &&"of this card to gSelectedUIArray" 
+   end if
+end updateUIPropertiesDataFromControls
+

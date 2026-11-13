@@ -1,0 +1,11 @@
+-- generic button script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): button "handler Edit Header" (id 60802)
+-- handlers: mouseUp
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+----MOUSEUP _EDITING @edit_0001
+on mouseUp
+sethandlerEditHeader
+end mouseUp
+----ENDMOUSEUP _EDITING @edit_0001|3:12:57 PM

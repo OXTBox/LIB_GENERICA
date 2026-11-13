@@ -1,0 +1,11 @@
+-- generic button script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): button "End Turn" (id 1667)
+-- handlers: mouseUp
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseUp
+   ops.clearDebug
+set the cursor to busy
+send Turn.Finish to this stack in 30 milliseconds
+end mouseUp

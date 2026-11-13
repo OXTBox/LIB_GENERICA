@@ -1,0 +1,17 @@
+-- generic field script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): field "console" (id 81853)
+-- handlers: mouseDown
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseDown tBtn
+   --if item 1 of the mouseLoc > the right of me -50 then pass mouseDown
+   put word 2 selectedLine of me into gHilitedLine
+   if there is a field "StatusLabeL" then put line gHilitedLine of me into field "statusLabel"
+   if tBtn is 3 then 
+      put  word 2 of the mouseLine into gHilitedLine
+      set the hilitedLine of me to gHilitedLine
+      set the copyTextLine of this stack  to line gHilitedLine of me
+      popup button "CopyPasteUndoMenuButton"
+   end if 
+end mouseDown

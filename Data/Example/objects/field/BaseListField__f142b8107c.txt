@@ -1,0 +1,15 @@
+-- generic field script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): field "BaseListField" (id 15804)
+-- handlers: mouseDown
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseDown
+put word 2 selectedLine of me into myLine
+if line myLine of me is empty then 
+set the hiliteLine of me to none
+clearMobileSelection
+end if
+put line myLine of me
+if myLine is not empty and myLine is not 0 then selectMobile (line myLine of me)
+end mouseDown

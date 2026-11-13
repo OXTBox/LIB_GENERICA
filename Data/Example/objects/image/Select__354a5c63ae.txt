@@ -1,0 +1,16 @@
+-- generic image script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): image "Select" (id 23588)
+-- handlers: gotomouse
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on gotomouse
+put the currentSelection of this stack into gSelectedObject
+put word 2 of  gSelectedObject into gGameObjectIndexLabel
+if there is a graphic gGameObjectIndexLabel then
+set the loc of me to loc of graphic gGameObjectIndexLabel
+set the originXY of me to the originXY of graphic gGameObjectIndexLabel
+set the layer of graphic  gGameObjectIndexLabel to top
+set the layer of me to bottom
+end if
+end gotomouse

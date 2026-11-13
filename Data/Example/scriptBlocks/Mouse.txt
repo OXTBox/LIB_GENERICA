@@ -1,0 +1,206 @@
+-- script block: Mouse (handlers whose names start with "Mouse"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 7
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on Mouse.ClickOnBase
+   ops.setDebug ("00141 Mouse.ClickOnBase")
+   put "" into gErrorIndent
+   ops.emptydataset   
+   if bSendToTool is true  then 
+      put the clickedObject of this stack into gClickedObject
+      Mouse.SendToClick
+      exit Mouse.ClickOnBase
+   end if
+   	   
+   ops.traceCPropset "Mouse.ClickOnBase" 
+   set the currentSelection of this stack to the clickedObject of this stack
+   put the currentSelection of this stack into gSelectedObject
+   set the clickedObject of this stack to empty
+   put "" into gClickedObject
+   put "base" into gGameTool
+   GameObject.SelectedObject -- refresh all those global names & values
+   --put word 1 of gSelectedObject into gGameObjectTypeLabel
+   --put word 2 of gSelectedObject into gGameObjectIndexLabel
+   --put char 1 of word 1 of gGameObjectTypeLabel into gGameObjectTypePrefix
+   --put char 3 to -1 of gGameObjectIndexLabel into gID
+   --GameObject.setPropertyValuesFromData
+   set the disabled of group "BaseUIControlsGroup" to ( gParent <> 1)
+   UI.selectionCircle gGameObjectIndexLabel  -- selection circle
+   UI.refreshBase  -- gameobjectdataproperties field
+   debug
+end Mouse.ClickOnBase
+
+on Mouse.HandleBaseClicks targ
+   ops.setDebug ("00142 Mouse.HandleBaseClicks" && targ )
+   put "" into gErrorIndent
+   	  
+   ops.emptyDataSet
+   put the currentSelection of this stack into gSelectedObject
+   set itemDel to comma
+   -- select Stars
+   if word 1 of gSelectedObject is "base" then
+      put word 2 of gSelectedObject into  gGameObjectIndexLabel
+      put word 2 of gSelectedObject into gSelectedBase
+      if there is not a graphic  gGameObjectIndexLabel then 
+         put "BASE ERROR" &&  gGameObjectIndexLabel && "@ HandleBaseClicks" & cr after gDebug
+         exit Mouse.HandleBaseClicks
+      end if
+      	      
+      	      
+      -- send ships to mouse click xy
+      if bSendToBool is true and targ is "xy" then
+         put cr & mxy & cr after xy
+         	         
+         put GetRelativeLoc(mxy,gZoomLevel) into rXY
+         put item 1 of rXY into x
+         put item 2 of rXY into y
+         Gameobject.CreateRendezvous  gGameObjectIndexLabel
+         UI.ToggleSendTo false
+         	         
+      end if 
+      
+      if targ is empty then
+         -- selecting a second star to send ships to of the target is not the same as currentSelection
+         if bSendToBool is true and the name of the target is not word 2 of gSelectedObject then
+            put cr & the loc of the target & cr after xy
+            --set the destinationPath of grc  gGameObjectIndexLabel to xy 
+            --set the points of graphic "SendTopath" to xy
+            put the short name of the target into gClickedTarget
+            set the sendToSource of graphic "SendTopath" to  gGameObjectIndexLabel
+            set the sendToDestination of graphic "SendTopath" to gClickedTarget
+            set the sendTo of grc  gGameObjectIndexLabel to gClickedTarget
+            GameObject.SendTo gClickedTarget
+            --put Base.setProperty(gGameObjectIndexLabel,"SendTo",(gClickedTarget)) into gGameObjectData
+            put word 2 of gSelectedObject into field "SelectedBaseLabel"
+            put the short name of the target into field "SendToLabel"
+            UI.ToggleSendTo false
+            	            
+         else
+            -- a single star selection
+            ops.emptyDataSet
+            set the previousSelection of this stack to gSelectedObject
+            put "base" && the short name of the target into gSelectedObject
+            set the currentSelection of this stack to gSelectedObject
+            put the loc of the target into xy
+            if there is not an image "select" then Init.UnitSelectionImage
+            set the loc of image "select" to xy
+            show image "select"
+            set the currentSelection of image "select" to gSelectedObject
+            	            
+            UI.ToggleSendTo False
+            	            
+            updateSendToPath
+            put word 2 of gSelectedObject into field "SelectedBaseLabel"
+            put word 2 of gSelectedObject into gGameObjectIndexLabel
+            put word 1 of gSelectedObject into gGameObjectTypeLabel
+            GameObject.selectionCircle
+            --set the points of graphic "SendToPath" to xy
+         end if
+      end if
+   end if
+   GameObject.SelectedObject
+   --Base.refreshGui gGameObjectIndexLabel 
+   set the disabled of group "BaseUIControlsGroup" to ( gParent <> 1)
+end Mouse.HandleBaseClicks
+
+on Mouse.HandleGridClicks
+   ops.setDebug ("00143 Mouse.HandleGridClicks")
+   put "" into gErrorIndent
+   put "HandleGridClicks" && cr &&"gSelectedObject = " && gSelectedObject &cr after gDebug
+   put the currentSelection of this stack into gSelectedObject
+   set the previousSelection of this stack to empty	   
+   -- if a base is selected then check if it's sending ships to the click target
+   if word 1 of gSelectedObject is "base" and bSendToBool then Mouse.HandleBaseClicks "xy"
+   if word 1 of gSelectedObject is "mobile" and bPathToolBool then HandleMobileClicks "xy"
+end Mouse.HandleGridClicks
+
+on Mouse.HandleMobileClicks targ
+   ops.setDebug ("00144 Mouse.HandleMobileClicks" && targ )
+   put "" into gErrorIndent
+   ops.emptyDataSet
+   set the previousSelection of this stack to gSelectedObject
+   put "s,e,o" into gose
+   if char 1 of the short name of the target is among the items of gose then put the short name of the target into  gMobileIndexLabel 
+   put "mobile" && gMobileIndexLabel  into gSelectedObject 
+   ops.traceCPropset "Mouse.HandleMobileClicks" 
+   ops.emptydataset
+   set the currentSelection of this stack to "mobile" && gMobileIndexLabel 
+   if gMobileIndexLabel  is empty or char 1 of gMobileIndexLabel  is "d" then exit Mouse.HandleMobileClicks
+   --put the currentSelection of this stack into gSelectedObject
+   set itemDel to comma
+   put "HandleMobileClicks = " & targ & cr after gDebug
+   -- select mobs
+   
+   if word 1 of gSelectedObject is "mobile" then
+      put word 2 of gSelectedObject into gMobileIndexLabel 
+      put word 2 of gSelectedObject into gSelectedMobile
+      put the loc of graphic gMobileIndexLabel  into xy
+      set the lineSize of graphic gMobileIndexLabel  to 2
+      put Mobile.getData(gMobileIndexLabel ) into gMobileData
+      updateMobileFields
+   end if 
+   -- send ships to mouse click xy
+   if bPathToolBool is true and targ is "xy" then DrawMobilePath
+end Mouse.HandleMobileClicks
+
+on Mouse.SendToClick
+   ops.setDebug ("00145 Mouse.SendToClick")
+   put "" into gErrorIndent
+   --if bSendToBool is false then exit Mouse.SendToClick
+   if the mouseloc is not within the rect of group "Map" or bSendToBool is false then 
+      UI.fixCur
+      exit Mouse.SendToClick
+   end if
+   put false into bSendToBool
+   UI.fixCur
+   put the clickedObject of this stack into gClickedObject  -- gClickedObject is not a 'selected' object   
+   put the currentSelection of this stack into gSelectedObject
+   put word 2 of gSelectedObject into  gGameObjectIndexLabel
+   	   
+   if there is not a graphic  gGameObjectIndexLabel  or gGameObjectIndexLabel is empty then 
+      set the clickedObject of this stack to empty
+      gameobject.select.empty
+      exit Mouse.SendToClick
+   end if
+   	   
+   put gGameObjectIndexLabel into gSendToSource
+   put the loc of grc  gGameObjectIndexLabel into gSourceXY
+   put the mouseLoc into mXY
+   put item 1 of mxy+5 into x
+   put item 2 of mxy+5 into y
+   	   
+   if  gClickedObject is empty then
+      put cr & mxy & cr after xy
+      	      
+      put GetRelativeLoc(mxy,gZoomLevel) into rXY
+      put item 1 of rXY into x
+      put item 2 of rXY into y
+      Gameobject.CreateRendezvous gGameObjectIndexLabel
+      set the visible of graphic "SendToPath" to true
+   end if
+   UI.refreshSendTo
+   set the clickedObject of this stack  to empty
+   put "" into gClickedObject
+end mouse.SendToClick
+
+on mouseDown
+   ops.setDebug ("00146 mouseDown")
+   put "" into gErrorIndent
+   --put "" into gDebug
+end mouseDown
+
+on mouseUp
+   ops.setDebug ("00147 mouseUp")
+   put "" into gErrorIndent
+   	   
+   	   
+   if bSendToBool is true and the mouseLoc is within the rect of group "map"  then
+      set the defaultcursor to arrow
+      if the GameObjectTypeLabel of the target is empty and the GameObjectTypeLabel of the target is not "rendezvous" then   Mouse.SendToClick 
+      if the GameObjectTypeLabel of the target is not empty and the GameObjectTypeLabel of the target is not "rendezvous" then   Mouse.SendToTarget
+   end if	  	   
+end mouseUp
+

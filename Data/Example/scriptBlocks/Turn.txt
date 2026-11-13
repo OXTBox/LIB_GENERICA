@@ -1,0 +1,268 @@
+-- script block: Turn (handlers whose names start with "Turn"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 7
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on Turn.Base
+   ops.setDebug ("00181 Turn.Base")
+   put "" into gErrorIndent
+   List.Players  -- <<-- generates gPlayerList from PlayerData property of stack
+   repeat  with gPlayerNumber = 1 to gNumberOfPlayers
+      put "" into gErrorIndent
+      put "Player" & gPlayerNumber into gPlayerName
+      Turn.PlayerBaseUpdates gPlayerNumber
+   end repeat
+   put "Player1" into gPlayerName
+   put 1 into gPlayerNumber
+end Turn.Base
+
+on Turn.Finish
+   lock screen
+   lock messages
+   --clearDebug
+   put "" into gErrorIndent
+   set the previousSelection of this stack to gSelectedObject
+   set the currentSelection of this stack to empty
+   put 0 into gScrollOffsetX
+   put 0 into gScrollOffsetY
+   put 0.25 into gZoomLevel
+   put "endTurn @ gGameTurn :"&& gGameTurn & cr into gEndTurnText
+   put tab&"---------------------" after gEndTurnText
+   ops.setdebug (gEndTurnText)
+   --- iterate over the data and graphics
+   Turn.Base
+   ops.emptydataset
+    Turn.Mobile --- <<< 
+   	   
+   --- after all the end turn checks and updates
+   	   
+   --Turn.Begin
+   ops.emptydataset
+   set the currentSelection of this stack to the previousSelection of this stack
+   put the currentSelection of this stack into gSelectedObject
+   GameObject.Select (word 2 of gSelectedObject)
+   --GameObject.SelectedObject
+   --UI.zoomedMap
+   --UI.refreshBase
+   string.writeFile "Turn",(TurnDebug&the seconds&".sql"),gDebug
+   put "" into gDebug
+   unlock screen
+   unlock messages
+end Turn.Finish
+
+on Turn.LifeUpdate 
+   ops.setDebug ("00185 Turn.LifeUpdate gGameObjectTypeLabel gGameObjectIndexLabel" && quoted(gGameObjectTypeLabel) && quoted(gGameObjectIndexLabel))
+   put " " after gErrorIndent
+   --adjust population
+   put floor(gLife+(gPopulation)) into gLife
+   GameObject.life gLife
+end Turn.LifeUpdate
+
+on Turn.LoopX tLoop
+   ops.setDebug ("00186 Turn.LoopX" && tLoop )
+   put "" into gErrorIndent
+   if tLoop is not empty then put tLoop into gTurnsToRun
+   set the randomSeed to the seconds 
+   send turn.finish to this stack in 110 milliseconds
+   add 1 to gTurnLoopCount
+   if gTurnLoopCount < gTurnsToRun then send Turn.LoopX to this stack in 150 milliseconds
+end Turn.LoopX
+
+on Turn.Mobile
+   ops.setDebug ("00187 Turn.Mobile")
+   put "    " after gErrorIndent
+   put Mobile.list() into gMobileObjectstList
+   
+   --- no defense satellites 
+   put gMobileObjectstList into gFlightList 
+   filter gFlistList without "d_"&"*"
+   
+   put getMobilePathsData() into gMobilePathData
+   repeat for each line gMobileIndexLabel  in gMobileObjectstList
+      if char 1 of gMobileIndexLabel = "b" then
+         ops.setDebug ("ALERT A BASE" && gMobileIndexLabel &&"WAS FOUND IN  gMobileObjectstList via  Mobile.list()!!!")
+         next repeat
+      end if
+      put " " after gErrorIndent   
+      
+      put Mobile.getData(gMobileIndexLabel) into gMobileData
+      ops.setDebug ("00187 Turn.Mobile gMobileData =" && gMobileData)
+      
+      put "p" & char 2 to -1 of gMobileIndexLabel into gMobilePathIndexLabel
+      ops.setDebug ("00187 Turn.Mobile   gMobilePathIndexLabel = " && quoted(gMobilePathIndexLabel))   
+      
+      put the travelIndex of graphic gMobileIndexLabel  into tTravelIndex
+      ops.setDebug ("00187 Turn.Mobile   tTravelIndex = " && tTravelIndex)   
+      
+      
+      ---  we need the ORIGIN POINTS of the path for ORIGINXY of the mobile
+      set the customPropertySet of this stack to "PathData"
+      do "put the" && gMobilePathIndexLabel &&"of this stack into gMobilePathPoints"
+      ops.emptyDataSet
+      ops.setDebug ("00187 Turn.Mobile   gMobilePathPoints = " && number of lines of gMobilePathPoints && "lines") 
+      if number of lines of gMobilePathPoints < 2 then next repeat
+      
+      put the loc of graphic gMobileIndexLabel  into gMobileObjectLoc    
+      ops.setDebug ("00187 Turn.Mobile" && quoted(gMobileIndexLabel) && "current Loc = " && gMobileObjectLoc)
+      
+      --- Mobile has reached end of its path
+      if  tTravelIndex+1 > number of lines of gMobilePathPoints then
+         ops.setDebug("Turn.Mobile" && quoted(gMobileIndexLabel) && "Destination reached!")
+         put 0 into tTravelIndex
+         set the travelIndex of graphic gMobileIndexLabel  to tTravelIndex
+         
+         put gMobileIndexLabel && "Arrived at Destination" && item sendtoitem of gMobileData into gMobileMessage
+         set the customPropertySet of this stack to EventData
+         do "set the" && gMobileIndexLabel && "of this stack to gMobileMessage" 
+         ops.emptydataset
+         ---GameObject.reversePath ---?
+         --clearMobilePathIndex
+         
+         put "x" & the originXY of graphic gMobileIndexLabel into gCurrentMapLocation
+         replace comma with "y" in gCurrentMapLocation
+         replace "." with "p" in gCurrentMapLocation
+         replace "-" with "neg" in gCurrentMapLocation
+         set the customPropertySet of this stack to MapData
+         do "put the" && gCurrentMapLocation && "of this stack into gCurrentMapLocationArray"
+         put gMobileData into gCurrentMapLocationArray[gMobileIndexLabel]
+         do "set the" && gCurrentMapLocation && "of this stack to gCurrentMapLocationArray"
+         set the customPropertySet of this stack to empty
+         
+         next repeat
+      end if
+      --- LERP  along the line 
+      if tTravelIndex <= number of lines of gMobilePathPoints then
+         add 1 to tTravelIndex
+         set the travelIndex of graphic gMobileIndexLabel  to tTravelIndex
+         
+         --- get the location of the mobile  coordinates on the current line of the Path points	
+         --- get the originXY points of the line   and pass it to the mobile's originXY for zooming    
+         put line tTravelIndex of gMobilePathPoints into gOriginXYLoc
+         set the originXY of graphic gMobileIndexLabel to gOriginXYloc
+         ops.setDebug ("00187 Turn.Mobile line" && tTravelIndex &&"of path" && gMobilePathIndexLabel &&"= gOriginXYLoc = " && gOriginXYLoc) 	
+         
+         --- set the mobile object to the current scaled points of the line
+         put the points of graphic gMobilePathIndexLabel into gMobilePathScaledPoints
+         set the loc of graphic gMobileIndexLabel  to line tTravelIndex of gMobilePathScaledPoints
+         ops.setDebug ("MOBILE" && gMobileIndexLabel &&"MOVED TO = " && the loc of graphic gMobileIndexLabel)	         
+         
+         --put math.lerp(item 1 of tOriginLoc,item 1 of tDestination,tLerpProgress) into tNewX
+         --put math.lerp(item 2 of tOriginLoc,item 2 of tDestination,tLerpProgress) into tNewY
+         
+         --- change the path to reflect the distance traveled, moving the first line forward
+         --put number of lines of gMobilePathPoints into tDebugpathPoints   
+         --ops.Setdebug ("Turn.Mobile changed gMobilePathPoints with tTravelIndex" && tTravelIndex && "number of lines of path points =" && tDebugpathPoints) 
+         --put number of lines of gMobilePathPoints into tDebugpathPoints
+         --ops.Setdebug ("Turn.Mobile changed gMobilePathPoints Number of lines =" && tDebugpathPoints &&"to"&& number of lines of gMobilePathPoints) 
+      end if
+      ops.emptyDataSet		
+   end repeat
+   -- UI.zoomedMap
+end Turn.Mobile
+
+on Turn.PlayerBaseUpdates tPlayerNumber
+   ops.setDebug ("00188 Turn.PlayerBaseUpdates" && tPlayerNumber )
+   put "" into gErrorIndent
+   -- validate the player number
+   if tPlayerNumber < 1 or tPlayerNumber > gNumberOfPlayers then put 1 into tPlayerNumber
+   put tPlayerNumber into gPlayerNumber
+   put "Player"& gplayerNumber into gPlayerName 
+   put "base" into gGameObjectTypeLabel
+   set itemDel to comma
+   	   
+   --- list the player owned bases for current player
+   --put List.PlayerBases(gPlayerNumber) into gPlayerBaseList
+   put GameObject.listOwned("base",gPlayerNumber) into gPlayerBaseList
+   filter lines of gPlayerBaseList without empty
+   --- ITERATE OVER THE BASES AND APPLY UPDATES
+   repeat for each line  gGameObjectIndexLabel in gPlayerBaseList
+      put " " after gErrorIndent	      
+      put "base" into gGameObjectTypeLabel
+      put "BASEDATA" into gGameObjectTypeData   
+      put gGameObjectIndexLabel into tStoredIndex   --- somwhere gGameObjectIndexLabel gets lost, ie, empty
+      --- WARNING: TRACK SELECTION ,some handlers looking for gSelectedObject or the stack :( should fix that
+      ops.emptydataset  -- don't set the object in the wrong data set
+      put gGameObjectTypeLabel && gGameObjectIndexLabel into gSelectedObject
+      set the currentSelection of this stack to gSelectedObject
+      	      
+      put tStoredIndex into gGameObjectIndexLabel   --- << --- gGameObjectIndexLabel getting lost somewhere
+      --- GET THE OBJECT DATA
+      GameObject.Data gGameObjectTypeLabel , gGameObjectIndexLabel
+      	      
+      	      
+      put tStoredIndex into gGameObjectIndexLabel --- << --- gGameObjectIndexLabel getting lost somewhere
+      --- INCREMENT THE BASE LEVEL 
+      GameObject.IncrementLevel gGameObjectIndexLabel
+      	      
+      put tStoredIndex into gGameObjectIndexLabel --- << --- gGameObjectIndexLabel getting lost somewhere
+      	      
+      --- UPDATE ALL THE VARIABLE PROPERTIES OF A BASE INCLUDING NEW SHIP CREATION
+      put Base.updateManagementProperties(gGameObjectIndexLabel) into gGameObjectData 
+      	      
+      put tStoredIndex into gGameObjectIndexLabel --- << --- gGameObjectIndexLabel getting lost somewhere
+      
+      ops.setDebug("sending Turn.AssemblyUpdate( " && gGameObjectIndexLabel &&") = " && gGameObjectData)
+      
+      --- UPDATE THE ASSEMBLY PROPERTY
+      put Turn.AssemblyUpdate(gGameObjectIndexLabeL) into gGameObjectData
+      ops.setDebug("AFTER Turn.AssemblyUpdate( " && gGameObjectIndexLabel &&") = gGameObjectData = " && gGameObjectData)
+      	      
+      --- UPDATE THE LIFE VALUE OF THE BASE
+      Turn.LifeUpdate
+      	      
+      --GameObject.setDataToPropertyGlobals  -- this should have been handled by the ohter handlers/functions
+   end repeat
+   ops.setDebug("Turn.PlayerBaseUpdates" && gPlayerNumber && "complete")
+   	   
+end Turn.PlayerBaseUpdates
+
+function Turn.AssemblyUpdate tGameObjectIndexLabel
+   ops.setDebug ("00309 Turn.AssemblyUpdate")
+   put "" into gErrorIndent
+   if tGameObjectIndexLabel is not empty then put tGameObjectIndexLabel into tGameObjectIndexLabel
+   if gGameObjectIndexLabel is empty then
+      ops.setDebug ("ERROR Turn.AssemblyUpdate received EMPTY gGameObjectIndexLabel")
+      return empty
+   end if
+   ops.setDebug ("00309 Turn.AssemblyUpdate("&gGameObjectIndexLabel& ")")
+   --- update ships assembly state
+   set itemDel to comma
+   GameObject.select gGameObjectIndexLabel  --- << --- update all globals associated with the object
+   put "base" into gGameObjectTypeLabel
+   put "baseData" into gGameObjectTypeData
+   put false into bUpdateAIGoals	
+   
+   --- Assembly Complete add a new mobile
+   
+   if gAssembly+(gMotivation*0.15)+(gLife*0.0000000000123456789) > 100 then
+      ops.setdebug ("ASSEMBLY gAssembly+(gMotivation*0.0015) > 100")
+      --- reset assembly
+      put 1 into gAssembly
+      GameObject.assembly gAssembly   -- this should handle everything as far as gGameData etc
+      	      
+      --- NEW MOBILE
+      put GameObject.createMobile(gGameObjectIndexLabel) into gMobileData --- << --- pass the source base data to the mobile with changes
+      ops.setDebug ("ASSEMBLY RETURNS FROM GameObject.createMobile(" & quoted(gGameObjectIndexLabel) &")"&cr& "gGameObjectData ="&& gGameObjectData & cr &"gMobileData ="&& gMobileData )
+      
+      --- change AI Management Decision
+      put true into bUpdateAIGoals	
+      ops.emptyDataSet   
+   else
+      ops.setDebug ("!! ASSEMBLY BEFORE!" & gGameObjectIndexLabel && gAssembly) 
+      add 1+(gProduction*0.15)+(gLife*0.0000000000123456789) to gAssembly
+      ops.setDebug ("!! ASSEMBLY AFTER!" & gGameObjectIndexLabel && gASsembly) 
+      GameObject.Assembly gAssembly      	      
+      
+      ops.setDebug ("Turn.AssemblyUpdate set gGameObjectData:" && gGameObjectData)
+      set itemDel to comma
+   end if
+ 
+   ---  AI activity   after Aseembly update	   
+   if bUpdateAIGoals is true and gID is not empty and gParent <>0 then Base.adjustAIGoalsAfterAssembly
+   
+   ops.setDebug ("Turn.AssemblyUpdate (" && gGameObjectIndexLabel &&") returns gGameObjectData" && gGameObjectData & cr)
+   return gGameObjectData
+end Turn.AssemblyUpdate
+

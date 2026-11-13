@@ -1,0 +1,10 @@
+-- generic button script
+-- source: GenericaProperties_03182026a
+-- used by 1 object(s): button "Save" (id 1131)
+-- handlers: mouseUp
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseUp
+   init
+   chooseWriteToFolder
+end mouseUp

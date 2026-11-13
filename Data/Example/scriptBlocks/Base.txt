@@ -1,0 +1,540 @@
+-- script block: Base (handlers whose names start with "Base"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 24
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on Base.adjustAIGoalsAfterAssembly 
+   ops.setDebug ("00002 Base.adjustAIGoalsAfterAssembly")
+   put "   " into gErrorIndent
+   put "BASE" into gGameObjectTypeLabel
+   put "BASEDATA" into gGameObjectTypeData
+   if gID is empty then exit Base.adjustAIGoalsAfterAssembly
+   set itemDel to comma
+   put "population,production,prudence" into tGoals
+   put item random(3) of tGoals into tPrefGoal
+   put math.randomAIshift(6) into tShift
+   ops.setDebug ("00002 Base.adjustAIGoalsAfterAssembly sends UI.AdjustSliders tShift,tPrefGoal " && tShift,tPrefGoal)
+   UI.AdjustSliders tShift,tPrefGoal
+   
+   ---  GameObject.SelectedObject  ---IS THIS NECESSARY AFTER SLIDERS SET THE DATA?
+   Base.AutoAssignSendToTarget
+   ops.emptyDataSet
+end Base.adjustAIGoalsAfterAssembly
+
+on Base.AssignProwler gMobileIndexLabel
+   ops.setDebug ("00003 Base.AssignProwler" && gMobileIndexLabel )
+   put "" into gErrorIndent
+   set customPropertySet of stack (the mainStack of this stack) to "ProwlerData" 
+   if gGameObjectIndexLabel is empty then exit Base.AssignProwler 
+   do "put the" && gGameObjectIndexLabel && "of stack (the mainStack of this stack) into gBaseProwlersList"
+   filter lines of gBaseProwlersList without gMobileIndexLabel 
+   put cr & gMobileIndexLabel  after gBaseProwlersList
+   filter lines of gBaseProwlersList without empty
+   do "set the" && gGameObjectIndexLabel && "of stack (the mainStack of this stack) to gBaseProwlersList"
+   if the visible of group "MobileUIControlsGroup" then put gBaseProwlersList into field "BaseListField"
+   ops.emptydataset
+end Base.AssignProwler
+
+on Base.AutoAssignSendToTarget
+   ops.setDebug ("00004 Base.AutoAssignSendToTarget")
+   put "" into gErrorIndent
+   set itemDel to comma
+   ops.emptyDataSet
+   if there is not a graphic  gGameObjectIndexLabel then exit Base.AutoAssignSendToTarget
+   if there is a graphic  gGameObjectIndexLabel then put the Proximity of graphic  gGameObjectIndexLabel into tProximity
+   put number of lines of tProximity into tmaxProx
+   add 1+floor(gLevel) to gCurrentRandomLine
+   put "gCurrentRandomLine" && gCurrentRandomLine & cr after gDebug
+   if gCurrentRandomLine > number of lines of gRandomNumbersList then put 1 into gCurrentRandomLine
+   put line gCurrentRandomLine of gRandomNumbersList into tRND
+   --- What does gBuild have to do with the targets, if they are close DEFEND, if far GO OFFENSIVE/COLONIZE
+   put 1+math.mapToRange(tRND,100,4) into gBuild
+   
+   if gBuild < 1 then put 2 into gBuild   --- type 1 is base, don't build a base!!
+   if gBuild> 5 then put 5 into gBuild
+   GameObject.build gBuild
+   
+   put math.mapToRange(tRND,100,tmaxProx) into tProxRnd
+   	   
+   if gBuild = 1 then 
+      put 0 into gSendTo
+      set the sendToSource of graphic "SendToPath" to empty
+      set the sendToDestination of graphic "SendToPath" to empty
+   else 
+      put item 2 of line tProxRnd of tProximity into gSendTo
+      put gCurrentRandomLine&& "AutoChangeSendToTarget" &&  gGameObjectIndexLabel  && gSendTo &&"build:" && gBuild && tRnd,tProxRnd & cr after gDebug
+      set the sendToSource of graphic "SendToPath" to  gGameObjectIndexLabel
+      set the sendToDestination of graphic "SendToPath" to gSendTo
+   end if
+   	   
+   set the sendTo of graphic  gGameObjectIndexLabel to gSendTo
+   GameObject.setDataToPropertyGlobals
+end Base.AutoAssignSendToTarget
+
+on Base.ClaimCheck
+   ops.setDebug ("00005 Base . ClaimCheck" && mSendTo &&mParent )
+   put "" into gErrorIndent
+   put Mobile.list() into teList
+   	   
+   filter lines of teList with "e*"
+   filter lines of teList without empty
+   if number of lines of teList < 1 then exit Base.ClaimCheck
+   if tList is empty then exit Base.ClaimCheck
+   put "" into gErrorIndent
+   repeat for each line gMobileIndexLabel  in teList
+      put "" into gErrorIndent
+      if there is not a graphic gMobileIndexLabel  then next repeat
+      put Mobile.getData(gMobileIndexLabel ) into gMobileData
+      put item itemOffset("sendto",gGameObjectProperties) of gMobileData into gSendTo	
+      put "!!2 Base.ClaimCheck gSendTo=" && gSendTo & cr after gDebug
+      if gSendTo is empty or gSendTo is 0 then next repeat
+      	      
+      put "p" & char 2 to -1 of gMobileIndexLabel  into gMobilePathIndexLabel
+      if there is a not graphic gMobilePathIndexLabel then
+         Mobile.createGraphic
+         put the loc of graphic gMobileIndexLabel  &cr& the loc of graphic gSendTo into tPoints
+         set the points of graphic gMobilePathIndexLabel to tPoints
+         zoomPaths
+      end if
+      set the SendToDestination of the templateGraphic to gSendTo
+      put line -1 of the points of graphic gMobilePathIndexLabel into tPXY
+      if tPXY is within the rect of graphic gMobilePathIndexLabel  then ClaimBase gSendTo    
+   end repeat
+end Base.ClaimCheck
+
+on Base.defineGraphicObject x,y, tName,tType
+   ops.setDebug ("00007 Base.defineGraphicObject" && x &&y && tName &&tType )
+   put "" into gErrorIndent
+   set the textSize of the templateGraphic to 24
+   set the showName of the templateGraphic to false
+   set the antiAliased of the templateGraphic to true
+   set the opaque of the templateGraphic to true
+   set the backgroundColor of the templateGraphic to white
+   set the style of the templateGraphic to oval
+   set the height of the templateGraphic to 6
+   set the width of the templateGraphic to 6
+   set the lineSize of the templateGraphic to 0
+   set the loc of the templateGraphic to x,y
+   set the name of the templateGraphic to tName
+   set the gameObjectTypeLabel of the templateGraphic to tType
+   put (x,y)is within the rect of group "map" of this stack into tVis
+   set the visible of the templateGraphic to tVis
+end Base.defineGraphicObject
+
+on Base.Group
+   ops.setDebug ("00008 Base.Group")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to "BaseData"
+   put the customKeys of this stack into gBaseList
+   ops.emptyDataSet
+   filter lines of gBaseList without empty
+   put "" into gErrorIndent
+   repeat for each line  gGameObjectIndexLabel in gBaseList
+      put "" into gErrorIndent
+      put " graphic" && quote &  gGameObjectIndexLabel &quote && "and"&space after sGroupString
+   end repeat
+   if there is a group "Base.Group" then delete group "Base.Group"
+   do "group" && word 1 to -2 of sGroupString
+   set the name of it to "Base.Group"
+end Base.Group
+
+function Base.listowned gPlayerNumber
+   ops.setDebug ("00009 Base.List")
+   put "" into gErrorIndent
+   if gPlayerNumber < 1 or gPlayerNumber > gNumberOfPlayers then return empty
+   set the customPropertySet of this stack to PlayerData
+   do "put the Player"&gPlayerNumber &&"of this stack into gPlayerDataArray"
+   put the keys of gPlayerDataArray into gPlayerBaseList
+   filter gPlayerBaseList with "b_*"
+   filter lines of gPlayerList without empty
+   return gPlayerBaseList
+end Base.listowned
+
+on Base.refreshGui gGameObjectIndexLabel
+   ops.setDebug ("00010 Base.refreshGui" && gGameObjectIndexLabel )
+   ops.emptydataset
+   put "" into gErrorIndent
+   lock screen
+   	   
+   if gGameObjectIndexLabel is empty then
+      put "" into field "GameObjectPropertiesField"
+      put "" into field "baseListField"
+      put empty into field "selectedBaseLabel"
+      put empty into field "BaseLevelLabel"
+      put empty into field "BaseLifeLabel"
+      GameObject.select.empty
+      send debug to this stack in 30 milliseconds
+      exit Base.refreshGui
+   end if
+   ops.emptydataset
+   put "Base" into gGameObjectTypeLabel
+   put gGameObjectTypeLabel & "Data" into gGameObjectTypeData
+   put  gGameObjectTypeLabel && gGameObjectIndexLabel into  gSelectedObject 
+   set the currentSelection of this stack to gSelectedObject
+   put char 1 of gSelectedObject into gGameObjectTypePrefix
+   ops.traceCPropset "Base.refreshGui" 
+   --- get the data for the selected object
+   
+   GameObject.GlobalsView   --- << gets all the object data making the extra call to GameObject.Data redundant
+   put gGameObjectStatus into field "GameObjectPropertiesField"  --- gGameObjectStatus was set by GameObject.GlobalsView
+   -- GameObject.Data gGameObjectTypeLabel,gGameObjectIndexLabel
+   --- set the property globals to the data
+   --- property values are handled by the    GameObject.GlobalsView via list.gameobjectCurrentGlobalValues
+   --ops.SetDebug("GameObjectData before:" && gGameObjectData)
+   --GameObject.setPropertyValuesFromData
+   --ops.SetDebug("GameObjectData after:" && gGameObjectData)
+   	   
+   --- this is refreshGUI after all
+   put gGameObjectIndexLabel into field "selectedBaseLabel"
+   put "Level:" && floor(gLevel) into field "BaseLevelLabel"
+   put "Life:" && gLife into field "BaseLifeLabel"
+   put "Location:" && gX & comma & gY into field "BaseLocationLabel"
+   put "Assembly:" && floor(gAssembly)&"%" into field "BaseAssemblyLabel"
+   	   
+   --put Base.getMobilesList(item 1 of gGameObjectData) into field "baseListField"
+   if gParent < 1 then 
+      put "Produce: ?" into field "ProductionTypeLabel"
+   else
+      put "Produce:"&&item gBuild of gGameObjectSelectables into field "ProductionTypeLabel"
+   end if
+   UI.RefreshManagerThumbPositions
+   send UI.refreshStateLines to this stack in 500 milliseconds
+   UI.refreshSendTo
+   set the disabled of group "BaseUIControlsGroup" to ( gParent <> 1)
+   unlock screen
+end Base.refreshGui
+
+on Base.refreshParentedData
+   ops.setDebug ("00011 Base.refreshParentedData")
+   put "" into gErrorIndent
+   --   GameObject.setPropertyValuesFromData
+   GameObject.SelectedObject
+   	   
+   if gID is empty or gID <1 or gParent is empty or gParent <1 then 
+      exit Base.refreshParentedData
+   end if
+   	   
+   	   
+   put "Player" & gPlayerNumber into gPlayerName
+   do "set the customPropertySet of this stack to" && gPlayerName
+   put "updatepplayerBasedata" && gID, gPlayerNumber, gPlayerName & cr after gDebug
+   put the base of this stack into tPlayerbasearray 
+   put "b_"&gID into  gGameObjectIndexLabel
+   put gGameObjectData into tPlayerbasearray[ gGameObjectIndexLabel]
+   set the base of this stack to tPlayerbasearray
+   ops.emptyDataSet
+end Base.refreshParentedData
+
+on Base.select gGameObjectIndexLabel
+   ops.setDebug ("00012 Base.select" && gGameObjectIndexLabel )
+   put "" into gErrorIndent
+   put "base" into gGameObjectTypeLabel
+   if ops.validateIndexLabel(gGameObjectIndexLabel) is empty then
+      	      
+      exit Base.select
+   end if
+   if gGameObjectIndexLabel is a number then put "b_" & gGameObjectTypeLabel into gGameObjectTypeLabel
+   if char 2 of gGameObjectIndexLabel is "_" then  put char 3 to -1 of gGameObjectIndexLabel into gID
+   	   
+   if gID is empty  or gID is not a number then 
+      set itemDel to toldDel
+      GameObject.selectionIsNotValid ("Base.select gID invalid!! = gGameObjectIndexLabel gID =" && gGameObjectIndexLabel &tab& gID)
+      exit Base.select
+   end if
+   GameObject.SelectedObject
+   	   
+   -- store the old selection and update globals to the new one
+   GameObject.selectionChanged gGameObjectTypeLabel,gGameObjectIndexLabel
+   -- update the data 
+   GameObject.Data gGameObjectTypeLabel , gGameObjectIndexLabel
+   	   
+   GameObject.SelectedObject
+   	   
+   	   
+   put gSendTo into field "SendToLabel"
+   	   
+   	   
+   if there is not a graphic gSendTo then 
+      GameObject.selectionIsNotValid ("Base.select no graphic for gSendTo" && gSendTo)
+      exit Base.select
+   end if
+   	   
+   if gGameObjectIndexLabel is not empty and gSendTo is not 0 and gSendTo is not empty then
+      if gSendTo is not gGameObjectIndexLabel then SetSendToPath  gGameObjectIndexLabel,gSendTo,(the originXY of graphic gSendTo)
+      GameObject.SelectedObject
+   end if
+   	   
+   -- set the selection circle
+   if there is a graphic ( gGameObjectIndexLabel) then GameObject.selectionCircle
+   if word 1 of gSelectedObject is "base" & word 2 of the selectedObject is not empty then Base.refreshGui gGameObjectIndexLabel
+   GameObject.GlobalsView
+end Base.select
+
+on Base.selectHomeWorld
+   ops.setDebug ("00013 Base.selectHomeWorld")
+   put "" into gErrorIndent
+   set itemDel to comma
+   put "Base.selectHomeWorld" & cr after gDebug
+   put "Player1" into gPlayerName
+   put 1 into gPlayerNumber
+   set the customPropertySet of this stack to "PlayerData"
+   put the Player1 of  this stack into gPlayer1DataArray
+   put the keys of gPlayer1DataArray into tPlayerBases
+   
+   put line 1 of tPlayerBases into gGameObjectIndexLabel
+   put "base" into  gGameObjectTypeLabel
+   put gGameObjectTypeLabel && gGameObjectIndexLabel into gSelectedObject
+   ops.emptydataset
+   set the currentSelection of this stack to gSelectedObject
+   GameObject.Data gGameObjectTypeLabel, gGameObjectIndexLabel
+   ops.traceCPropset "Base.selectHomeWorld" 
+end Base.selectHomeWorld
+
+on Base.setProximities
+   ops.setDebug ("00014 Base.setProximities")
+   put "" into gErrorIndent
+   	   
+   set the customPropertySet of this stack to "BaseData"
+   put the customKeys of this stack into gBaseList
+   ops.emptyDataSet
+   filter lines of gBaseList without empty
+   put "base" into gGameObjectTypeLabel 
+   put "" into gErrorIndent
+   repeat for each line  gGameObjectIndexLabel in gBaseList
+      put "" into gErrorIndent
+      --if ops.validateIndexLabel(gGameObjectIndexLabel) is empty then next repeat
+      	      
+      put gGameObjectTypeLabel && gGameObjectIndexLabel into gSelectedObject
+      set the currentSelection of this  stack to gSelectedObject
+      put char 3 to -1 of  gGameObjectIndexLabel into gID
+      	      
+      GameObject.Data gGameObjectTypeLabel,gGameObjectIndexLabel
+      	      
+      put "" into ProxList
+      put "" into gErrorIndent
+      -- 1 2 4 2024 we don't need no stinking graphics
+      repeat for each line tDest in gBaseList
+         put "" into gErrorIndent
+         put the tDest of this stack into tDestinationData
+         put item itemOffset("x",gameObjectProperties) of tDestinationData into xOrigin
+         put item itemOffset("y",gameObjectProperties) of tDestinationData into yOrigin
+         put (1+gx) - (1+xOrigin)-2 into tDestX
+         put (1+gy) - (1+yOrigin)-2 into tDestY
+         put string.PadNumber(tDestX,8) & string.PadNumber(tDestY,8) & comma & tDest & cr after ProxList
+      end repeat
+      	      
+      replace numtochar(45) with "0" in ProxList
+      sort ProxList numeric ascending 
+      replace "0000" with "0" in ProxList
+      replace "000" with empty in ProxList
+      filter lines of ProxList without empty
+      	      
+      if there is a graphic  gGameObjectIndexLabel then 
+         set the Proximity of graphic  gGameObjectIndexLabel to ProxList
+         set the customPropertySet of this stack to "Proximity"
+         do "set the" &&  gGameObjectIndexLabel &&" of this stack to line 2 to -1 of ProxList"
+      end if
+   end repeat
+   ops.emptyDataSet
+   	   
+end Base.setProximities
+
+on BASE_fadeFocus
+   ops.setDebug ("00015 BASE_fadeFocus")
+   put "" into gErrorIndent
+   put the loc of me into xy
+   if word 2 of the currentSelection of this stack is not the short name of me then
+      set the width of me to 6
+      set the height of me to 6
+   else
+      if the width of me > 6 then
+         set the width of me to (the width of me)-1
+         set the height of me to (the height of me)-1
+         send fadeFocus to me in 50 milliseconds
+      end if
+   end if
+   set the loc of me to xy
+   	   
+end BASE_fadeFocus
+
+on BASE_gainFocus
+   ops.setDebug ("00016 BASE_gainFocus")
+   put "" into gErrorIndent
+   put the loc of me into xy
+   set the width of me to (the width of me)+1
+   set the height of me to (the height of me)+1
+   set the loc of me to xy
+   if  the mouseLoc is within the rect of me and the width of me < 12 then 
+      send gainFocus to me in 50 milliseconds
+   else
+      send fadeFocus to me in 50 milliseconds
+   end if
+end BASE_gainFocus
+
+on BASE_mouseDown
+   ops.setDebug ("00017 BASE_mouseDown")
+   put "" into gErrorIndent
+   set the clickedObject of this stack to (the gameObjectTypeLabel of me && the short name of me)
+   if there is an image "Select" then set the currentSelection of image "Select"   to (the gameObjectTypeLabel of me && the short name of me)
+   --    clearDebug
+   --send GameObject.selectionCircle to this stack in 60 milliseconds
+   send Mouse.ClickOnBase to this stack in 30 milliseconds
+   --send gotomouse to image "select"
+   if the width of me < 12 then send gainFocus to me in 20 milliseconds
+end BASE_mouseDown
+
+on BASE_mouseUp
+   ops.setDebug ("00018 BASE_mouseUp")
+   put "" into gErrorIndent
+   
+   if  the mouseLoc is within the rect of me and the width of me < 12 then 
+      send gainFocus to me in 50 milliseconds
+   else
+      send fadeFocus to me in 50 milliseconds
+   end if
+   ops.emptydataset
+   set the currentSelection of this stack to (the gameObjectTypeLabel of me && the short name of me)
+   ops.traceCPropset "BASE_mouseUp" 
+end BASE_mouseUp
+
+function Base.getProwlers
+ops.setDebug ("00237 Base.getProwlers")
+put "" into gErrorIndent
+	   set the customPropertySet of this stack to "Prowlers"
+	   do "put the" && gGameObjectIndexLabel &&"of this stack into gBaseProwlers"
+	   ops.emptyDataSet
+	   return gBaseProwlers
+end Base.getProwlers
+
+function Base.IncrementGoals tVal, tGoal, tmin, tmax
+ops.setDebug ("00238 Base.IncrementGoals")
+put "" into gErrorIndent
+	   put "Base.IncrementGoals("&tGoal, tVal, tmin, tmax&") = " && tVal&cr after gDebug
+	   if tGoal >= tVal then
+	      add 3 to tVal
+	      if tVal > tGoal then put tGoal into tVal
+	      if tVal > tmax then put tMax into tVal
+	      return tVal
+   end if
+	   
+	   if tGoal <= tVal then
+	      subtract 3 from tVal
+	      if tVal < tGoal then put tGoal into tVal
+	      if tVal < tMin then put tMin into tVal
+	      return tVal
+   end if
+end Base.IncrementGoals
+
+function Base.setArray gID,tArray
+   ops.setDebug ("00240 Base.setArray")
+   put "" into gErrorIndent
+   put "Base.setArray("&gID,tArray & ")"&cr after gDebug
+   set the customPropertySet of this stack to "BaseData"
+   do "set the b_"&gID&&"of this stack to tArray"
+   ops.emptyDataSet
+end Base.setArray
+
+function Base.setProperty gGameObjectIndexLabel,gPropertyName,gPropertyValue
+ops.setDebug ("00241 Base.setProperty")
+put "" into gErrorIndent
+	   ops.setDebug ("setBaseProperty" && gGameObjectIndexLabel & comma & tPropertyName & comma &gPropertyValue)
+	   put "base" into gGameObjectTypeLabel
+	   set the customPropertySet of this stack to "BaseData"
+	   ops.setDebug ("Base.setProperty  gGameObjectData gGameObjectDat BEFORE call to gGameObjectIndexLabel property" && gGameObjectData)
+	   do "put the" && gGameObjectIndexLabel &&"of this stack into gGameObjectData"
+	   ops.setDebug ("Base.setProperty  gGameObjectData gGameObjectDat AFTER call to gGameObjectIndexLabel property" && gGameObjectData)
+	   if gGameObjectData is empty then 
+	      put gZeroedGameObjectData into gGameObjectData
+	      put char 3 to -1 of gGameObjectIndexLabel into item 1 of gGameObjectData
+	      ops.setDebug ("Base.setProperty  gGameObjectData was empty, given zeroed data" && gGameObjectData)
+   end if
+	   put itemOffset(gPropertyName,gGameObjectProperties) into gPropertyOffset
+	   put item gPropertyOffset of gGameObjectData into tOldValue
+	   
+	   if char 1 of gValue is "-" or char 1 of gValue is "+" or char 1 of gValue is "/" then
+	      put "put" && toldValue & gPropertyValue &&"into tResult" into tCom
+	      do tCom
+	      put tResult into item gPropertyOffset of gGameObjectData
+	   else
+	      put gPropertyValue into item gPropertyOffset of gGameObjectData
+   end if
+	   
+	   do "set the" && gGameObjectIndexLabel && "of this stack to gGameObjectData"
+	   ops.emptyDataSet
+	   return gGameObjectData
+end Base.setProperty
+
+function Base.setZeroGlobals tArg
+ops.setDebug ("00242 Base.setZeroGlobals")
+put "" into gErrorIndent
+	   put "zeroBaseGlobals("& tArg & ")" & cr after gDebug
+	   repeat for each item gPropertyLabel in gGameObjectProperties
+	      put "Put 0 into g" && gPropertyLabel & cr after tTemplate
+	      put toUpper(char 1 of gPropertyLabel) into char 1 of gPropertyLabel 
+	      put "Put 0 into g" & gPropertyLabel & cr after tZeroGlobalTemplate 
+	      put "0,"after tZeros
+   end repeat
+	   put char 1 to -2 of tZeros into gZeroedGameObjectData
+	   if tArg is "globals" then 
+	      do tZeroGlobalTemplate
+	      
+   end if
+	   return gZeroedGameObjectData
+end Base.setZeroGlobals
+
+function Base.updateManagementProperties gGameObjectIndexLabel
+   ops.setDebug ("!! 00243 Base.updateManagementProperties")
+   put "" into gErrorIndent
+   ops.setDebug ("$Base.updateManagementProperties() gGameObjectIndexLabel"& quoted(gGameObjectIndexLabel) && gGameObjectData)
+   put "base" into gGameObjectTypeLabel
+   GameObject.Data gGameObjectTypeLabel , gGameObjectIndexLabel
+   put char 3 to -1 of   of gGameObjectIndexLabel into gID
+   -- INCREMENT THE MANAGEMENT STATES TOWARD THEIR GOALS
+   put Base.IncrementGoals(gCivilization,gPopulation,1,33) into gCivilization
+   put Base.IncrementGoals(gMotivation,gProduction,1,33) into gMotivation
+   put Base.IncrementGoals(gEducation,gPrudence,1,33) into gEducation
+   GameObject.setDataToPropertyGlobals -- new 1-25-2024
+   GameObject.civilization gCivilization
+   GameObject.motivation gMotivation
+   GameObject.education gEducation
+  
+   GameObject.SelectedObject
+   ops.setDebug ("Base.updateManagementProperties (" &&gGameObjectIndexLabel &&") returns :"&& gGameObjectData)
+   return gGameObjectData
+end Base.updateManagementProperties
+
+function Base.UpdateSliders 
+ops.setDebug ("00244 Base.UpdateSliders")
+put "" into gErrorIndent
+	   ops.setDebug ("Base.UpdateSliders" && gGameObjectIndexLabel &&  the long time )
+	   lock screen
+	   lock messages
+	   set itemDel to comma
+	   put "population,production,prudence" into tItems
+	   put "base" into gGameObjectTypeLabel
+	   repeat for each item tBaseGoal in tItems
+	      do "set thumbposition of scrollbar" && tBaseGoal && "to g"&tBaseGoal
+	      set the blendLevel of scrollBar tBaseGoal to 33
+   end repeat
+	   UI.refreshScrollBarLocks
+	   ops.emptyDataSet
+	   --UI.refreshStateLines 
+	   GameObject.Data gGameObjectTypeLabel , gGameObjectIndexLabel
+	   unlock messages
+	   return gGameObjectData
+end Base.UpdateSliders
+
+function Base.getMobilesList-- <<--- maybe deprecated??? 1-27-2024 or not?
+   ops.setDebug ("00236 Base.getMobilesList")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to MobileData
+   put the customKeys of this stack into gMobileObjectList
+   do "put the" && gGameObjectIndexLabel && "of this stack into gMobileArray"
+   put the keys of gMobileArray into gBasedMobileObjectsList
+   filter Lines of gBasedMobileObjectsList without empty
+   ops.emptyDataSet
+   return gBasedMobileObjectsList 
+end Base.getMobilesList
+

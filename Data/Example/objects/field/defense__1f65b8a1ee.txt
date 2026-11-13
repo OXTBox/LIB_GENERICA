@@ -1,0 +1,11 @@
+-- generic field script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): field "defense" (id 1650)
+-- handlers: mouseDown
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseDown
+put word 2 selectedLine of me into N
+put line N of me into myLine
+if myLine is not empty then selectprowler (myLine)
+end mouseDown

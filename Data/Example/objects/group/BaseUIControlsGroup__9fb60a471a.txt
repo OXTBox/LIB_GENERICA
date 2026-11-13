@@ -1,0 +1,10 @@
+-- generic group script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): group "BaseUIControlsGroup" (id 19615)
+-- handlers: mouseEnter
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseEnter
+if  the script of this stack is empty then exit mouseEnter
+UI.refreshScrollBarLocks
+end mouseEnter

@@ -1,0 +1,1485 @@
+-- script block: Utility (handlers whose names start with "Utility"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026, GenericaProperties_03182026a
+-- handlers: 63
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on ops.traceCPropset tHandler
+   set the traceCustomPropertySet of this stack to tHandler
+end ops.traceCPropset
+
+on DRAG_mouseDown
+   put the mouseloc into  gStartDrag
+   if the mouse is down then send dragStart to me in 100 milliseconds
+end DRAG_mouseDown
+
+on DRAG_dragStart
+   if item 1 of the mouseloc <> item 1 of gStartDrag or item 2 of the mouseloc <> item 2 of gStartDrag then send dragMove to me in 100 milliseconds
+end DRAG_dragStart
+
+on DRAG_dragMove
+   if the mouse is down then 
+      set the loc of me to the mouseloc
+      send dragMove to me in 100 milliseconds
+   end if
+   UI.refreshSendTo
+end DRAG_dragMove
+
+on CollectAllscriptBlockContentToCustomProperties
+   ops.setDebug ("00025 CollectAllscriptBlockContentToCustomProperties")
+   put "" into gErrorIndent
+   --- put the button scripts into properties
+   repeat with i = 1 to number of buttons of group "scriptBlocks"
+      put "" into gErrorIndent
+      put the short name of button i of group "scriptBlocks" into tButtonName
+      put "#"&"#"&"-"&"-!!!!BEGIN_ScriptBlockButtonScript @" && tButtonName && "|" &tab& the long date &tab& the long date into tHeader
+      put "#"&"#"&"-"&"-!!!!FINISH_ScriptBlockButtonScript @" && tButtonName && "|" &tab& the long date &tab& the long date into tFooter
+      put tHeader & cr & the script of button i of group "scriptBlocks" & cr & tFooter into tCurrentScriptBlockScript
+      put tCurrentScriptBlock & cr after SCRIPT_GROUPBlocksScriptsCompiled
+      put the script of button i of group "scriptBlocks" & cr after allRawScriptBlocksContent
+      put "sb_" & short name of button i of group "scriptBlocks" into tPropertyIndex
+      -- store the data to a custom property set
+      SET the customPropertySet of this stack to "scriptBlocks"
+      do "put the" && tPropertyIndex && "of this stack into tScriptBlockArray"
+      put tCurrentScriptBlockScript into tScriptBlockArray[tButtonName]
+      do "set the" &&  tPropertyIndex && "of this stack to tScriptBlockArray"
+      ops.emptyDataSet
+   end repeat
+   	   
+   put allRawScriptBlocksContent into tBlockHandlers
+   put allRawScriptBlocksContent into tBlockFunctions
+   filter lines of tBlockHandlers with ("on"&numtochar(32)&"*")
+   filter lines of tBlockFunctions with ("function"&numtochar(32)&"*")
+   put tBlockHandlers & cr & tBlockFunctions into tAllBlockFunctionsANdHandlers
+   filter lines of tAllBlockFunctionsANdHandlers without empty
+   --- do the special other thing for the buttosn too
+   put "" into gErrorIndent
+   repeat for each line tGetBeginLineString in tAllBlockFunctionsANdHandlers 
+      put "" into gErrorIndent
+      put lineoffset(tGetBeginLineString,allRawScriptBlocksContent)-1 into tFunctionHeaderOffset
+      if tFunctionHeaderOffset is 0 then next repeat
+      put line tFunctionHeaderOffset+1 of allRawScriptBlocksContent into tActualFunctionLabeLine
+      put lineoffset("end" && word 2 of tActualFunctionLabeLine,allRawScriptBlocksContent)+1 into tFunctionFooterOffset
+      if tFunctionHeaderOffset is 0 then next repeat
+      put line tFunctionHeaderOffset to tFunctionFooterOffset of allRawScriptBlocksContent into tCurrentFunction
+      if CurrentFunction is empty then next repeat	
+      put line tFunctionHeaderOffset+1 of allRawScriptBlocksContent into tActualFunctionLabeLine
+      put word 2 of tActualFunctionLabeLine into tFunctionName
+      replace "on " with empty in tFunctionName
+      replace quote with empty in tFunctionName
+      if word 1 of tActualFunctionLabeLine is "function" then
+         set the customPropertySet of this stack to BlockFunctions
+         put the currentFunctions of this stack into tArray
+         put tCurrentFunction into tArray[tFunctionName]
+         SET the currentFunctions of this stack to tArray	
+         ops.emptyDataSet
+      else
+         	         			
+         set the customPropertySet of this stack to BlockkHandlers
+         put the currentHandlers of this stack into tArray
+         put tCurrentFunction into tArray[tFunctionName]
+         SET the currentHandlers of this stack to tArray	
+         ops.emptyDataSet
+      end if	
+   end repeat
+end CollectAllscriptBlockContentToCustomProperties
+
+on CollectScriptToBlocks tSourceButton,tFilter
+   ops.setDebug ("00026 CollectScriptToBlocks" && tSourceButton &&tFilter )
+   put "" into gErrorIndent
+   if tSourceButton is empty then put the short name of the target into tSourceButton
+   set itemDel to comma
+   put "Clear,Global,Init,Define,Set,Get,Create,Adjust,Update,Refresh" into SCRIPT_GROUPBlockFilters
+   put number of items of tTopRow into tMaxColumns
+   put ",UI,Base,Mobile,GameObject,Math,String,List,Menu,Mouse,Player,RawKey,Select,Toggle,Tool,Turn,Utility,View,Script" after SCRIPT_GROUPBlockFilters
+   put SCRIPT_GROUPBlockFilters into tButtonList
+   ask "items to filter for" with tButtonList
+   put it into tButtonList
+   if it is empty then exit CollectScriptToBlocks
+   	   
+   put 1 into gNumberOfButtonRows
+   put 1 into gNumberOfButtons
+   	   
+   put 1 into tColumns
+   	   
+   put the script of this stack into tScript
+   -- iterate over the button names to filter the scripts
+   put tScript into tHands1
+   put tScript into tFuns1
+   filter lines of tHands1 with "on "&"*"
+   filter lines of tFuns1 with "function "&"*"
+   put tHands1 & cr & tFuns1 into gUtilityFunctions
+   --put tFilteredFunctions
+   	   
+   repeat for each item tButtonName in tButtonList
+      put "" into SCRIPT_GROUPBlocksGroupScript
+      put "" into tCopy
+      if there is a button tButtonName then delete button tButtonName
+      put the script of this stack into tScript
+      	      
+      put tScript into tHandlersList
+      put tScript into tFunctionList
+      filter lines of tHandlersList with "on "&tButtonName&"*"
+      filter lines of tFunctionList with "function "&tButtonName&"*"
+      put tHandlersList & cr before tFunctionList
+      sort tFunctionList
+      filter lines of tFunctionList without empty
+      add number of lines of tFunctionList to gStackCommandsCount
+      	      
+      -- extract the functions and handlers
+      filter lines of gUtilityFunctions without "* "&tButtonName&"*"
+      	      
+      -- iterate over the lines of the function and handler labels
+      repeat for each line L in tFunctionList
+         	         
+         -- get the actual label of the handler or function
+         put word 2 of L into tTarget
+         	         
+         -- get the chunk of the script that is a handler or function
+         --replace space & space with space in tScript
+         --replace tab with space in tScript
+         put lineOffset(L,tScript) into tStart
+         put lineOffset("end"&& tTarget,tScript) into tEnd
+         put line tStart to tEnd of tScript & cr into tHandlerChunk
+         put tHandlerChunk into tAddebug
+         -- set debug
+         if word 1 of line tStart+1 of tHandlerChunk is not "ops.setDebug" & word 1 of line tStart+2 of tHandlerChunk is not "ops.setDebug" then
+         end if
+         set the clipboardData["text"] to tAddebug
+         setHandlerEditHeader
+         put the clipboardData["text"] into tEditCopy
+         put tEditCopy &cr&cr after tCopy
+      end repeat
+      	      
+      	      
+      	      
+      set the clipboardData["text"] to tCopy
+      	      
+      set the script of the templateButton to tCopy
+      set the rect of the templateButton to the rect of button (tSourceButton)
+      put height of button (tSourceButton) into H
+      set the top of the templateButton to top of group "Map"+(H*gNumberOfButtonRows)
+      put width of button (tSourceButton) into W
+      	      
+      if left of group "Map"+(tColumns*W)+W+1 > right of group "Map" then 
+         put 0 into tColumns
+         add 1 to gNumberOfButtonRows
+      end if
+      	      
+      set the left of the templateButton to left of group "Map"+( tColumns*width of button tSourceButton)
+      set the name of the templateButton to tButtonName
+      set the opaque of the templateButton to false
+      set the "default" of the templateButton to false
+      set the gameObjectTypeLabel of the templateButton to "scriptBlock"
+      	      
+      create button
+      add 1 to gNumberOfButtons
+      add 1 to tColumns
+      put "btn"&& quote& tButtonName &quote && "AND"&space after tObjectsToGroup
+   end repeat
+   	   
+   -- update Utility button
+   setUtilityscriptBlockButtonScript
+   setGlobalscriptBlockButtonScript
+   -- create scriptBlocks group
+   if there is a group "scriptBlocks" then delete group "scriptBlocks"
+   put getHandlerfromStack("SCRIPT_GROUP" & "_mouseDown") into SCRIPT_GROUPBlocksGroupScript
+   replace "SCRIPT_GROUP" & "_" with empty in SCRIPT_GROUPBlocksGroupScript
+   SET the script of the templateGroup to SCRIPT_GROUPBlocksGroupScript
+   SET the name of the templateGroup to "scriptBlocks"
+   do "group" && word 1 to -2 of tObjectsToGroup
+   SET the topLeft of group "scriptBlocks" to the topLeft of group "Map"
+end CollectScriptToBlocks
+
+on compareScriptBlocksToCurrentStackScript
+   ops.setDebug ("00027 compareScriptBlocksToCurrentStackScript")
+   put "" into gErrorIndent
+   put StackScriptToCustomProperties() into tFunctionAHandlersList
+   SET the customPropertySet of this stack to StackHandlers
+   put the currentHandlers of this stack into tStackHandlersArray
+   put the keys of tStackHandlersArray into tStackHandlerFunctionKeys
+   	   
+   ops.emptyDataSet
+   	   
+   SET the customPropertySet of this stack to BlockkHandlers
+   put the currentHandlers of this stack into tBlockHandlersArray
+   put the keys of tBlockHandlersArray into tBlockHandlerFunctionKeys
+   ops.emptyDataSet
+   -- compare if there are matching handlers and functions
+   put tBlockHandlerFunctionKeys into BlockvsStackComparison
+   sort BlockvsStackComparison
+   put tStackHandlerFunctionKeys into StackvsBlockComparison
+   sort StackvsBlockComparison
+   	   
+   repeat for each line L in BlockvsStackComparison 
+      put "" into gErrorIndent
+      put "" into tCharWord
+      repeat for each char C in L 
+         put "" into gErrorIndent
+         put charToNum(c) after tCharWord
+      end repeat
+      put tCharWord & tab & L & tab & "BLOCK" & cr after tBlockHandlersEnumerated
+   end repeat
+   put "" into gErrorIndent   
+   repeat for each line L in StackvsBlockComparison
+      put "" into gErrorIndent
+      put "" into tCharWord
+      repeat for each char C in L 
+         put "" into gErrorIndent
+         put charToNum(c) after tCharWord
+      end repeat
+      put tCharWord &tab & L & tab & "STACK" & cr after tStackHandlersEnumerated
+   end repeat
+   sort tBlockHandlersEnumerated numeric ascending
+   sort tStackHandlersEnumerated numeric ascending
+   filter lines of tBlockHandlersEnumerated without empty
+   filter lines of tStackHandlersEnumerated without empty
+   put number of lines of tBlockHandlersEnumerated into blockCount
+   put number of lines of tStackHandlersEnumerated into stackCount
+   	   
+   if blockCount > stackCount then
+      put tBlockHandlersEnumerated && blockCount into tLongList
+      put tStackHandlersEnumerated && stackCount into tShortList
+   else
+      put tBlockHandlersEnumerated && blockCount into tShortList
+      put tStackHandlersEnumerated && stackCount into tLongList
+   end if
+   put "" into gErrorIndent
+   repeat with i = 1 to number of lines of tLongList 
+      put "" into gErrorIndent
+      if i <= number of lines of tBlockHandlersEnumerated then put i into B
+      if i <= number of lines of tStackHandlersEnumerated then put i into S
+      put line B of tBlockHandlersEnumerated & cr & line S of tStackHandlersEnumerated & cr & cr after tCompareResult
+      if i > number of lines of tBlockHandlersEnumerated then put cr &"*********" after tBlockHandlersEnumerated
+      if i > number of lines of tStackHandlersEnumerated then put cr &"*********" after tStackHandlersEnumerated
+      --put line i of tShortList into tCheck
+      	      
+      --filter lines of tLongList without tCheck&"*"
+      --filter lines of tShortList without tCheck&tab&"*"--filter lines of tShortList without tCheck&tab&"*"
+   end repeat
+   --   send debug to this stack in 30 milliseconds
+end compareScriptBlocksToCurrentStackScript
+
+on debug tFilter
+   if tFilter is not empty  then
+      put gDebug into t1
+      put gDebug into t2
+      put gdebug into t3
+      
+      filter lines of t1 with "*"&tFilter
+      filter lines of t2 with tFilter&"*"
+      filter lines of t3 with "*"&tFilter&"*"
+      put t1 & cr & t2 & cr & t3  into gDebug
+      --filter lines of gDebug without empty
+      string.writeFile
+      UI.consoleWrite
+   end if
+end debug
+
+on CONSOLE_mouseDown tBtn
+   ops.setDebug ("00029 CONSOLE_mouseDown" && tBtn )
+   put "" into gErrorIndent
+   put word 2 selectedLine of me into gHilitedLine
+   if there is a field "StatusLabeL" then put line gHilitedLine of me into field "statusLabel"
+   if tBtn is 3 then 
+      put  word 2 of the mouseLine into gHilitedLine
+      set the hilitedLine of me to gHilitedLine
+      set the copyText of button "CopyPasteUndoMenuButton" to line gHilitedLine of me
+      popup button "CopyPasteUndoMenuButton"
+   end if 
+end CONSOLE_mouseDown
+
+on ExtractStackScriptToButtons tFilter
+   ops.setDebug ("00032 ExtractStackScriptToButtons" && tFilter )
+   put "" into gErrorIndent
+   --clearDebug
+   put the script of this stack into tScript
+   if tScript is empty or line 1 of tScript is "Locked!" then exit ExtractStackScriptToButtons
+   filter lines of tScript without "global "&"*"
+   -- first get the script and all its functions and handlers
+   put tScript into Thands
+   put tscript into tFunctionList
+   filter lines of tHandlersList with "on "&"*"
+   filter lines of tFunctionList with "function*"
+   put tFunctionList & cr & tHandlersList into allFunsandHands
+   	   
+   repeat with i = 1 to number of buttons in group "scriptBlocks"
+      put "" into gErrorIndent
+      put short name of button i of group "scriptBlocks" into tFilter
+      put tScript into tFilteredList
+      filter lines of tFilteredList with "end"&&tFilter&"*"
+      put tFilteredList & cr after tCombinedFilteredList
+   end repeat
+   
+   put "" into gErrorIndent
+   repeat for each item I in "repeat,if,switch"
+      put "" into gErrorIndent
+      filter lines of tCombinedFilteredList without "end"&&I
+   end repeat
+   filter lines of tCombinedFilteredList without empty
+   	   
+   replace "end" with empty in tCombinedFilteredList
+   	   
+   -- filter for the items we don't have
+   put "" into gErrorIndent
+   put number of lines of allFunsandHands into BF
+   repeat for each line L in tCombinedFilteredList
+      put "" into gErrorIndent
+      filter lines of allFunsandHands without "*"&L&"*"
+      filter lines of allFunsandHands without L&"*"
+      filter lines of allFunsandHands without "*"&L
+      filter lines of allFunsandHands without "*on"&&L
+      filter lines of allFunsandHands without "on"&&L
+   end repeat
+   -- put BF,number of lines of allFunsandHands & cr & allFunsandHands
+   --if tCheck is not empty then next repeat
+   put "" into gErrorIndent   
+   put number of lines of tScript into SN
+   repeat for each line L in allFunsandHands
+      put "" into gErrorIndent
+      put word 2 of L into tTarget
+      put L & cr after allLS
+      put lineOffset(L,tScript) into tStart
+      put lineOffset("end"&&tTarget,tScript) into tEndPoint
+      put line tStart to tEndPoint of tScript  &cr after tCopy
+   end repeat
+   --put number of lines of tCopy && SN
+   set the clipboardData["text"] to tCopy
+   set the script of the templateButton to tCopy 
+   set the rect of the templateButton to 0,0,80,22
+   put 22 into H
+   set the top of the templateButton to top of group "Map"+(H*gNumberOfButtonRows)
+   put width of button (short name of the target) into W
+   if left of group "Map"+(gNumberOfButtons*W)+W > left of group "Map" then 
+      put 0 into gNumberOfButtons
+      add 1 to gNumberOfButtonRows
+   end if
+   set the left of the templateButton to left of group "Map"+(gNumberOfButtons*width of button (short name of the target))
+   set the name of the templateButton to "CLEANED OUT SCRIPT"
+   set the opaque of the templateButton to false
+   set the "default" of the templateButton to false
+   create button
+   add 1 to gNumberOfButtons
+end ExtractStackScriptToButtons
+
+on fixWanderingRendezvous
+   ops.setDebug ("00033 fixWanderingRendezvous")
+   put "" into gErrorIndent
+   list.rendezvous
+   filter gRendezvousList without empty
+   repeat for each line R in gRendezvousList
+      put the loc of graphic R into Rloc
+      put the originBase of graphic R into rBase
+      put the offsetX of graphic R into xROffset
+      put the offsetY of graphic R into yROffset
+      	      
+      put the loc of graphic rBase into rbLoc
+      add xROffset*gZoomLevel  to item 1 of rbLoc
+      add yROffset*gZoomLevel  to  item 2 of rbLoc
+      set the loc of graphic R to rbloc
+   end repeat
+   	   
+   	   
+end fixWanderingRendezVous
+
+on ops.addErrorCodesToStackScript
+   ops.setDebug ("00148 ops.addErrorCodesToStackScript")
+   put "" into gErrorIndent
+   set the cursor to busy
+   put the script of this stack into tScript
+   put tScript into tHands
+   put tScript into tFuns
+   filter lines of tHands with "on "&"*"
+   sort tHands
+   put 0 into tHandlerCount
+   put "" into tModifiedStackScript
+   repeat for each line tHand in tHands
+      add 1 to tHandlerCount
+      put "" into tHandlerBody
+      put word 2 of tHand into tHandler
+      	      
+      put getHandlerFromStack(tHandler) into tHandlerBody
+      filter lines of tHandlerBody without empty
+      if the number of words of tHand > 2 then
+         put "" into tArgs
+         repeat for each item I in (word 3 to -1 of tHand)
+            if char 1 of I is "-" then put ")" &I && "&&" after tArgs
+            else
+               put  I && "&&" after tArgs
+            end if
+         end repeat 
+         put space & "&&" && char 1 to -3 of tArgs  after tErrorCodeLine
+      end if
+      put   line 1 of tHandlerBody & cr & tErrorCodeLine &")"  & cr into tHandlerUpate
+      put  "put" && quote & quote && "into gErrorIndent" & cr & line 2 to -1 of tHandlerBody after tHandlerUpate
+      if word 1 of line 1 of tHandlerUpate is numtochar(111)&numtochar(110)   then put tHandlerUpate & cr & cr after tModifiedStackScript
+      if word 1 of line 1 of tHandlerUpate is "function"  then put tHandlerUpate & cr & cr after tModifiedStackScript
+      string.writeFile "Handlers",word 2 of tHand,tHandlerUpate
+   end repeat
+   string.writeFile "StackScript","Handlers",tModifiedStackScript
+   -- functions
+   filter lines of tFuns with "function "&"*"
+   sort tfuns
+   repeat for each line tFunc in tFuns
+      add 1 to tHandlerCount
+      put "" into tHandlerBody
+      put word 2 of tFunc into tFunctionLabel
+      put getFunctionFromStack(tFunctionLabel) into tHandlerBody
+      if the number of words of tHand > 2 then
+         put "" into tArgs
+         repeat for each item I in (word 3 to -1 of tHand)
+            put  I && "&&" after tArgs
+         end repeat 
+         put space & "&&" && char 1 to -3 of tArgs  after tErrorCodeLine
+      end if
+      put  tErrorCodeLine &")" after char -1 of line 1 of tHandlerBody
+      put cr &"put" && quote &quote & "into gErrorIndent" after line 2 of tHandlerBody
+      replace space&space with empty in line 1 of   tHandlerBody
+      put tHandlerBody & cr & cr after tModifiedStackScript
+      string.writeFile "Functions",tFunctionLabel,tHandlerBody
+   end repeat
+   	   
+   put tScript into tGlobals
+   filter lines of tGlobals with "global"&"*"
+   sort tGlobals
+   replace tab with space in  tglobals
+   replace space & space & space with space in tGlobals
+   replace space & space & space with space in tGlobals
+   replace space & space with space in tGlobals
+   sort tGlobals
+   put tGlobals & cr & "----END OF GLOBAL DEFINITIONS----"  into tGlobalsText
+   put tGlobalsText & cr & cr before tModifiedStackScript
+   string.writeFile "StackScript","StackScript_ErrorCodesAdded_"&string.asitems(the short date,"/","_"),tModifiedStackScript
+   	   
+   repeat for each line G in tGlobals
+      put "put" && quote&quote &&"into" && G & cr after tBigInit
+   end repeat
+   	   
+   put "on INIT.All_GLOBALS" & cr before tBigInit
+   put  "end INIT.ALL_GLOBALS" after tBigInit
+   put tGlobalsText & cr & cr before tBigInit
+   string.writeFile "Globals","GlobalInit__"&string.asitems(the short date,"/","_"),tBigInit
+   set the cursor to arrow
+end ops.addErrorCodesToStackScript
+
+on ops.anaylyzeHandlerUse
+   ops.setDebug ("00149 ops.anaylyzeHandlerUse")
+   put "" into gErrorIndent
+   put the script of this stack into tScript
+   put tScript into tHands
+   put tScript into tFuns
+   filter lines of tHands with "on "&"*"
+   filter lines of tFuns with "function "&"*"
+   put tHands & cr & tFuns into tCommands
+   set the cursor to busy
+   repeat for each line L in tCommands
+      put word 2 of L into tCommand
+      put tscript into t1
+      put t1 into t2
+      put t2 into t3
+      filter lines of t1 with tCommand&"*"
+      filter lines of t2 with "*"&tCommand
+      filter lines of t3 with "*"&tCommand&"*"
+      put t1 & cr & t2 & cr & t3 into tCommanduse
+      put string.padNUmber(number of lines of tCommanduse,4) && tCommand & cr after tCommandsuseList
+      put tCommand & cr after cleancommands
+   end repeat
+   sort tCommandsuseList numeric ascending
+   string.writeFile "Commands","commandUse",tCommandsuseList
+   set the cursor to arrow
+end ops.anaylyzeHandlerUse
+
+on ops.ClearDebug
+   ops.setDebug ("00150 ops.ClearDebug")
+   put "" into gErrorIndent
+   put numtochar(13) & cr & the long seconds & cr into gDebug
+end ops.ClearDebug
+
+on ops.deprecate tHandler,tWhy
+   ops.setDebug ("00151 ops.deprecate" && tHandler &&tWhy )
+   put "" into gErrorIndent
+   set the custompropertyset of this stack to Deprecate
+   put getFunctionFromStack(tHandler) into tHandlerText
+   put "--"& tHandler && "DEPRECATE:"& tWhy & cr & tHandlerText into tHandlerText
+   do "set the" && tHandler && "of this stack to tHandlerText"
+   ops.emptyDataSet
+   put "DEPRECATE_" & string.directorySafeDate(the long date) into gDeprecateHandlerPath
+   string.writeFile gDeprecateHandlerPath&,tHandler,tHandlerText
+end ops.deprecate
+
+on ops.emptyDataSet
+   ops.setDebug ("00152 ops.emptyDataSet")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to empty
+end ops.emptyDataSet
+
+on ops.fixDebug
+   ops.setDebug ("00153 ops.fixDebug")
+   put "" into gErrorIndent
+   put the script of this stack into tScript
+   put tScript into tdebugFilter
+   filter lines of tDebugFilter with "*gDebug"
+   repeat for each line L in tDebugFilter
+      put lineOffset(L,tScript) into N
+      put line 1 to N-1 of tScript into tHead
+      put line N of tScript into tBody
+      put line N+1 to -1 of of tScript into tFoot
+      replace "&cr" with "& cr" in tBody
+      replace "& cr after gDebug" with "& the long time)" in tBody
+      put tHead & cr & tBody & cr & tFoot into tScript
+   end repeat
+   set the clipboardData["text"] to  tScript
+end ops.fixDebug
+
+on ops.debugIgnore what
+   if what is not empty then put comma  & what after gDebugIgnoreItems
+   set the customPropertySet of this stack to "Developer"
+   set the DebugIgnoreItems of this stack to gDebugIgnoreItems
+   ops.emptydataset
+end ops.debugIgnore
+
+on ops.setDebug gBug
+   if bSilentConsole is true then exit ops.setDebug
+   ---!! RECURSION ops.setDebug ("00154 ops.setDebug" && gBug ) !! RECURSION
+   set itemDel to cursor
+   if gBug is empty or word 1 of gBug is among the items of gDebugIgnoreItems then exit ops.setDebug
+   if gBug is empty or word 2 of gBug is among the items of gDebugIgnoreItems then exit ops.setDebug
+   if gBug is "-" then ops.clearDebug 
+   put " " before gErrorIndent
+   put  gErrorIndent & gBug & cr after gDebug
+   --UI.consoleWrite
+   UI.StatusLabel gBug
+end ops.setDebug
+
+on ops.writeGameObjectPropertyHandlers
+   ops.setDebug ("00155 ops.writeGameObjectPropertyHandlers")
+   put "" into gErrorIndent
+   repeat for each item gProperty in gGameObjectProperties
+      put "" into tHandler
+      --put "e"&"n"&"d" into gHandlerSuffix
+      put gHandlerPrefix && "GameObject." & gProperty  &&"t" & string.upchar(gProperty,1,1) &cr into tHandler
+      put "GameObject.SETPropertyValuesFromData" & cr after tHandler
+      put "put t" & gProperty  &&"into g" &gProperty  & cr after tHandler
+      put "GameObject.SetDataToPropertyGlobals" & cr after tHandler
+      --put "GameObject.setData" && quote & gProperty& quote & ",g"&gProperty&",gID,gGameObjectTypeLabel" & cr after tHandler
+      put gHandlerSuffix && "GameObject." & gProperty &cr after tHandler
+      put tHandler &cr after allHandlers
+      	      
+   end repeat
+   replace comma with space & comma & space in allHandlers
+   put allHandlers
+end ops.writeGameObjectPropertyHandlers
+
+on ops.writeInitBasePropertyItemOffsetGlobals
+   ops.setDebug ("00156 ops.writeInitBasePropertyItemOffsetGlobals")
+   put "" into gErrorIndent
+   put 0 into n
+   put "" into gInitPropertyItemOffsetDefaultValues
+   put "" into gGameObjectPropertyGlobalList
+   repeat for each item I in gGameObjectProperties
+      add 1 to n
+      put "Put" && n &&"into "&I&"Item" & cr after gInitPropertyItemOffsetDefaultValues
+      --put "global" && I & cr after gPropertyItemGlobalList
+      put "global" && I&"Item" & cr after gPropertyItemGlobalList
+   end repeat
+   put gPropertyItemGlobalList & cr & gInitPropertyItemOffsetDefaultValues 
+   do gInitPropertyItemOffsetDefaultValues
+end ops.writeInitBasePropertyItemOffsetGlobals
+
+on OrganizeScriptBlocks
+   ops.setDebug ("00157 OrganizeScriptBlocks")
+   put "" into gErrorIndent
+   put "Clear,Global,Init,Define,Set,Get,Create,Adjust,Update,Refresh" into gFirstOrderButtons
+   put left of button "clear" of group "scriptBlocks" into L
+   put bottom of button "clear" of group "scriptBlocks" into Y
+   put width of button "clear" of group "scriptBlocks" into W
+   put height of button "clear" of group "scriptBlocks" into H
+   	   
+   put L into X
+   put 1 into n
+   repeat with i = 1 to number of buttons of group "scriptBlocks"
+      put "" into gErrorIndent
+      put the short name of button i of group "scriptBlocks" into tName
+      if tName is not among the items of gFirstOrderButtons then put tName & cr after tFilterSort
+   end repeat
+   put "" into gErrorIndent
+   sort tFilterSort
+   filter lines of tFilterSort without empty
+   repeat for each line tName in tFilterSort
+      put "" into gErrorIndent
+      set the width of button tName to W
+      set the left of button tName to X
+      set the top of button tName to Y
+      set the textSize of button tName to 9
+      --put (n*W)+4 into X 
+      if X+W+(W) > right of button (item -1 of gFirstOrderButtons) then
+         put L into X
+         put 1 into n
+         add H to Y
+      else
+         add W to X
+         add 1 to n
+      end if
+   end repeat
+end OrganizeScriptBlocks
+
+on GamObject.setPathData
+   ops.setDebug ("00173 setPathData")
+   put "" into gErrorIndent
+   if gMobilePathIndexLabel is empty then exit GamObject.setPathData
+   if gMobilePathPoints is empty then
+      clearMobilePathIndex
+      exit GamObject.setPathData
+   end if
+   set the customPropertySet of this stack to "PathData"
+   do "set the" && gMobilePathIndexLabel &&"of this stack to gMobilePathPoints"
+   ops.emptyDataSet
+end GamObject.setPathData
+
+on testit tGameObjectIndexLabel
+   ops.setDebug ("00180 testit" && tGameObjectIndexLabel )
+   put "" into gErrorIndent
+   if tGameObjectIndexLabel is not empty then put tGameObjectIndexLabel into gGameObjectindexLabel
+   put the originXY of graphic gGameObjectIndexLabel into tSourceXY
+   	
+   put the mouseLoc into mouseXY
+   put GetRelativeLocFromObjects(gGameObjectIndexLabel,mouseXY,gZoomLevel) into tRelativeLoc
+end testit
+
+on LoopX.Begin  tTurnCount      --  tTurnCount  clearDebugrDebug
+   ops.setDebug ("00182 LoopX.Begin")
+   put true into bSilentConsole
+   put "" into gErrorIndent
+   put tTurnCount into gTurnsToRun
+   put 0 into gTurnLoopCount
+   Turn.LoopX tTurnCount
+end LoopX.Begin
+
+on XXXTESTTHIS
+ops.setDebug ("00234 XXXTESTTHIS")
+put "" into gErrorIndent
+end XXXTESTTHIS
+
+on ZoomPaths
+ops.setDebug ("00235 ZoomPaths")
+put "" into gErrorIndent
+	   put gMapX into tMapX
+	   put gMapY into tMapY
+	   add gScrollOffsetX to tMapX
+	   add gScrollOffsetY to tMapY
+	   set the customPropertySet of this stack to "PathData"
+	   put the customKeys of this stack into gPathList
+	   filter lines of gPathList without empty
+	   repeat for each line tPath in gPathList
+	      put tPath & cr after allPaths
+	      --put allPaths
+	      do "put the" && tPath&&"of this stack into tPointsList"
+	      filter lines of tPointsList without empty
+	      put empty into tNewPoints
+	      if tPointsList is not empty then
+	         set itemDel to comma
+	         repeat for each line tPoints in tPointsList
+	            put ((item 1 of tPoints - tMapX) * gZoomLevel) + tMapX into tNewLocX
+	            put ((item 2 of tPoints - tMapY) * gZoomLevel) + tMapY into tNewLocY
+	            put tNewLocx &comma & tNewLocY & cr after tNewPoints
+         end repeat
+	         
+	         if there is a graphic tPath then 
+	            put the SendToDestination of graphic tPath into mSendTo
+	            if mSendTo is not empty and there is a graphic mSendTo then
+	               put "b"&char 2 to -1 of tPath into mBase
+	               if there is a graphic mBase then put the loc of graphic mBase & cr & loc of graphic mSendTo into tNewPoints
+            end if
+         end if
+	         
+	         filter lines of tNewPoints without empty
+	         do "set the" && tPath &&"of this stack to tNewPoints"
+      end if
+	      --  prevent the lines from drawing beyond the map limit
+	      put tNewPoints into tTempPoints
+	      put "" into tNewPoints
+	      repeat for each line L in tTempPoints
+	         if item 1 of L < left of group "map" then put left of group "map" into item 1 of L
+	         if item 1 of L> right of group "map" then put right of group "map" into item 1 of L
+	         if item 2 of L < top of group "map" then put top of group "map" into item 2 of L
+	         if item 2 of L> bottom of group "map" then put bottom of group "map" into item 2 of L
+	         put L & cr after tNewPoints
+      end repeat
+	      filter lines of tNewPoints without empty
+	      
+	      if there is a graphic tPath then 
+	         set the points of graphic tPath to tNewPoints
+	         set the lineSize of graphic tPath to 1
+	         set the blendLevel of graphic tPath to 33
+      end if
+   end repeat
+	   ops.emptyDataSet
+end ZoomPaths
+
+function ops.checkScriptForDuplicateFunctions
+   put the script of this stack into tScript
+   put tScript into tHands
+   put tScript into tFuncs
+   filter lines of tHands with "on "&"*"
+   filter lines of tFuncs with "function "&"*"
+   put tHands & cr & tFuncs into tFuncHandList
+   repeat  with i =  number of lines of tFuncHandList  to 1 step -1
+      put line -1 of tFuncHandList into tCheck
+      put tFuncHandList into tFiltered
+      filter lines of tFiltered with tCheck
+      if number of lines of tFiltered > 1 then put word 1 to 2 of tCheck && number of lines of of tFiltered & cr after tDuplicatesList
+      filter lines of tFuncHandList without tCheck
+   end repeat
+   return tDuplicatesList
+end ops.checkScriptForDuplicateFunctions
+
+function emptyPuts
+ops.setDebug ("00245 emptyPuts")
+put "" into gErrorIndent
+	   put the script of stack (the mainStack of this stack) into tScript
+	   put tScript into tSubScript
+	   filter lines of tSubScript with "*put*"
+	   Filter lines of tScript with "put*"
+	   put tSubScript & cr & tScript into tScript
+	   filter lines of tScript without "*into*"
+	   filter lines of tScript without "*after*"
+	   filter lines of tScript without "*before*"
+	   filter lines of tScript without "--put*"
+	   filter lines of tScript without "*--put*"
+	   return tScript
+end emptyPuts
+
+function ops.validateGameObjectType gGameObjectTypeLabel,gExpectedType,gErrorSourceHandler
+ops.setDebug ("00296 ops.validateGameObjectType")
+put "" into gErrorIndent
+	   ops.setDebug ("ops.ValidateGameObjectType tTextToScrub = " && quoted(gGameObjectTypeLabel))
+	   set itemDel to comma
+	   if gExpectedType is not empty and gGameObjectTypeLabel <> gExpectedType then
+	      ops.setDebug ("ERROR @" && gErrorSourceHandler && "ops.validateGameObjectType found bad type in gGameObjectTypeLabel" & cr &tab&"expected:" &&  quoted(gExpectedType)& cr &tab&"received:" &&  quoted(gGameObjectTypeLabel))
+	      GameObject.select.empty
+	      return empty
+   end if
+	   
+	   if gGameObjectTypeLabel is  among the items of gGameObjectSelectables  then
+	      return gGameObjectTypeLabel
+	   else
+	      ops.setDebug ("ERROR @" && gErrorSourceHandler && "ops.validateGameObjectType found bad text in gGameObjectTypeLabel" & cr && tab & quoted(gGameObjectTypeLabel))
+	      GameObject.select.empty
+	      return empty
+   end if
+	   return empty
+end ops.validateGameObjectType
+
+function ops.validateIndexLabel gGameObjectIndexLabel,gErrorSourceHandler
+ops.setDebug ("00297 ops.validateIndexLabel")
+put "" into gErrorIndent
+	   ops.setDebug ("ops.validateIndexLabel T = " && quoted(T) )
+	   put false into  bFoundBadText
+	   put gGameObjectIndexLabel into T
+	   put   number of characters of T < 4 or comma is among the chars of T or "." is among the chars of T or char 1 of T is a number   into bFoundBadText
+	   
+	   if bFoundBadText is true then
+	      ops.setDebug ("ops.validateIndexLabel found bad text:" && quoted(T))
+	      put "" into T
+   end if
+	   
+	   return T
+end ops.validateIndexLabel
+
+function ops.writeGlobals
+ops.setDebug ("00298 ops.writeGlobals")
+put "" into gErrorIndent
+   end ops.writeGlobals
+
+function quoted sString
+ops.setDebug ("00299 quoted")
+put "" into gErrorIndent
+	   -- ops.setDebug "quoted"
+	   return quote & sString & quote 
+end quoted
+
+function quotedItems tItems
+ops.setDebug ("00300 quotedItems")
+put "" into gErrorIndent
+	   set the itemDel to comma
+	   repeat for each item I in tItems
+	      put quoted(I) & comma after gQuotedItems
+   end repeat
+	   return char 1 to -2 of gQuotedItems
+end quotedItems
+
+function StackScriptToCustomProperties
+ops.setDebug ("00303 StackScriptToCustomProperties")
+put "" into gErrorIndent
+	   put the script of this stack into tStackscript
+	   put tStackscript into tStackHandlers
+	   put tStackscript into tStackFunctions
+	   filter lines of tStackHandlers with ("on"&numtochar(32)&"*")
+	   filter lines of tStackFunctions with ("function"&numtochar(32)&"*")
+	   put tStackHandlers & cr & tStackFunctions into tAllStackHandHeaders
+	   --put tAllStackHandHeaders
+	   sort tAllStackHandHeaders
+	   filter lines of tAllStackHandHeaders without empty
+	   filter lines of tAllStackHandHeaders without tab&"*"
+	   filter lines of tAllStackHandHeaders without "*"&"put"&"*"
+	   
+	   repeat for each line tGetBeginLineString in tAllStackHandHeaders
+	      put lineoffset(tGetBeginLineString,tStackscript)-1 into tFunctionHeaderOffset
+	      if tFunctionHeaderOffset is 0 then next repeat
+	      put line tFunctionHeaderOffset+1 of tStackscript into tActualFunctionLabeLine
+	      put lineoffset("end" && word 2 of tActualFunctionLabeLine,tStackscript)+1 into tFunctionFooterOffset
+	      if tFunctionHeaderOffset is 0 then next repeat
+	      put line tFunctionHeaderOffset to tFunctionFooterOffset of tStackscript into tCurrentFunction
+	      if CurrentFunction is empty then next repeat	
+	      put line tFunctionHeaderOffset+1 of tStackscript into tActualFunctionLabeLine
+	      put tActualFunctionLabeLine & cr after allFunctionsHeaderLabels
+	      put word 2 of tActualFunctionLabeLine into tFunctionName
+	      replace "on " with empty in tFunctionName
+	      replace quote with empty in tFunctionName
+	      if word 1 of tActualFunctionLabeLine is "function" then
+	         set the customPropertySet of this stack to StackFunctions
+	         put the currentFunctions of this stack into tArray
+	         put tCurrentFunction into tArray[tFunctionName]
+	         SET the currentFunctions of this stack to tArray	
+	         ops.emptyDataSet
+	      else
+	         			
+	         set the customPropertySet of this stack to StackHandlers
+	         put the currentHandlers of this stack into tArray
+	         put tCurrentFunction into tArray[tFunctionName]
+	         SET the currentHandlers of this stack to tArray	
+	         ops.emptyDataSet
+      end if	
+   end repeat
+	   replace comma with tab & comma in allFunctionsHeaderLabels
+	   sort allFunctionsHeaderLabels
+	   return (allFunctionsHeaderLabels)
+end StackScriptToCustomProperties
+
+function ops.ScriptNotIDE
+   put the script of this stack into tScript 
+   put "global,replace,sort,lock,messages,screen,break,comma,cr,in,function,on,end,repeat,switch,case,filter,lines,line,points,if,then,else,try,finally,do,put,set,return,into,after,before,for,within,the,custompropertyset,customkeys,to,stack,card,this,button,graphic,image,group," into gWords
+   put "AM,PM,(,),1,2,3,4,5,6,7,8,9,of,into,the,loc,group,item" after gWords
+   put "-" & "-," before gWords
+   replace comma with cr in gWords
+   replace tab with cr in tScript
+   replace space with cr in tScript
+   filter lines of tScript without "*/*"
+   filter lines of tScript without "*:*"
+   filter lines of tScript without empty
+   put thefunctionames & cr before gWords
+   repeat for each line L  in gWords
+      filter lines of  tScript without  L
+   end repeat
+   
+   
+   
+   return tScript
+end ops.ScriptNotIDE
+
+------------------------------------------------------------ from GenericaProperties_03182026a
+
+on openCard
+   init
+end openCard
+
+on make_example_sets
+   if there is not a card "example" then create card "example"
+   go to card 1
+   put the customPropertySets of this card into tSets
+   repeat for each line tSet in tSets
+      set the customPropertySet of this card to tSet
+      set the customPropertySet of card "example" to tSet
+      set the customProperties of card "example" to the customProperties of this card
+   end repeat
+end make_example_sets
+
+on chooseWriteToFolder
+   put  char 2 to -2 of word 2 of the long name of stack (the mainStack of this stack) into gStackFullPath
+   set itemDel to "/"
+   answer folder "Select a folder to save the outline" with  item 1 to -2 of  gStackFullPath
+   if it is not empty then 
+      put it into gWriteToDirectoryRoot
+      set the write_folder_root of this stack to gWriteToDirectoryRoot
+      WriteOutlineToFiles gWriteToDirectoryRoot 
+   end if 
+end chooseWriteToFolder
+
+on writeOutlineToFiles tFolderPath
+   set itemDel to comma
+   if tFolderpath is not empty then put tFolderPath into gWriteToDirectoryRoot
+   put the customPropertySets of this card into gCardPropertySets
+   filter gCardPropertySets without "cREV"&"*"
+   repeat for each line L in gCardPropertySets
+      -- focus the property set
+      do "set the customPropertySet of this card to" && L
+      
+      -- truncate the name for folders
+      replace "game_" with empty in L
+      -- create a folder for the data
+      put gWriteToDirectoryRoot & "/" & L into gCurrentFolderPath
+      if there is not a folder gcurrentFolderPath then create folder gCurrentFolderPath
+      
+      -- the keys of the property set
+      put the customKeys of this card into tFilesArray
+      
+      --iterate over the keys
+      repeat for each line K in tFilesArray
+         -- collect the data held in the key
+         do "put the" && K &&"of this card into tArray"
+         put the keys of tArray into tArrayKeys
+         
+         filter lines of tArrayKeys without "description"
+         sort lines of tArraykeys numeric ascending
+         replace comma with cr in tArraykeys
+         put tab & k & cr after allKeys
+         put "" into tArrayTextContent
+         -- compile the data to a single variable
+         repeat for each line tIndex in tArrayKeys
+            put   tIndex & cr after allKeys
+            put tArray[tIndex] into tCleanText
+            replace "[" with empty in tCleanText
+            replace "]" with empty in tCleanText
+            set itemDel to "."
+            put item 2 to -1 of tCleanText into tCleanText
+            put tCleanText into tArray[tIndex]
+            put tCleanText & cr after tArrayTextContent
+            set the k of this card to tarray
+         end repeat
+         filter lines of tArrayTextContent without empty
+ 
+         put tArrayTextContent into tArray[tIndex]
+         -- write data to file
+         put "file:" & gCurrentFolderPath &"/" & K &".txt" into gCurrentFilePath
+         put tArrayTextContent into URL gCurrentFilePath
+         
+         put "file:" & gCurrentFolderPath &"/" & K &"_description.txt" into gCurrentFilePath
+         put tArray["description"] into URL gCurrentFilePath
+         put k && tArray["description"] & cr after allDescriptions
+      end repeat
+   end repeat
+   put allDescriptions into URL ("file:" & gWriteToDirectoryRoot &"/" & "property_descriptions.txt")
+   -- UI_Properties is an extra level of detail
+   writeUIPropertiesArraysToFiles
+end WriteOutlineToFiles
+
+on writeUIPropertiesArraysToFiles 
+   set the customPropertySet of this card to "Game_UI_Properties"
+   put the customKeys of this card into gUIPropertiesArrayList
+   repeat for each line tKey in gUIPropertiesArrayList
+      do "put the" && tKey &&"of this card into tSubArray"
+      
+      --put the keys of tSubArray & cr after tArrayTextContent
+      repeat for each line L in the keys of tSubArray
+         if there is not a folder (gCurrentFolderPath &"/" & tKey) then create folder (gCurrentFolderPath &"/" & tKey)
+         put "file:" & gCurrentFolderPath &"/" & tKey  &"/"&L &".txt" into gCurrentFilePath
+         put tSubArray[L] into gCurrentFileText
+         put gCurrentFileText into URL gCurrentFilePath 
+      end repeat
+   end repeat
+   
+end writeUIPropertiesArraysToFiles
+
+Function sortNumericWorkAround tListOfNumbers
+   put 0 into tLastNumber
+   
+   repeat while number of lines of tListOfNumbers > 0
+      put number of lines of tListOfNumbers into i
+      put line i of tListOfNumbers into tCheck
+      if n+1 > number of lines of tListofNumbers then put 0 into N
+      add 1 to n
+      put line n of tList into tCheck2
+      if tCheck > tLastNumber then 
+         put L &cr  after tNewList
+         put L into tLastNumber
+         next repeat
+      end if
+   end repeat
+   return tNewList
+end SortNumericWorkAround
+
+on chooseNewSourceFolder
+   put  char 2 to -2 of word 2 of the long name of stack (the mainStack of this stack) into gStackFullPath
+   set itemDel to "/"
+   answer folder "The source folder for data?" with  item 1 to -2 of  gStackFullPath
+   if it is not empty then 
+      put it into gSourceDirectoryRoot
+      set the source_folder_root of this stack to gSourceDirectoryRoot
+      FillSourcerDirectoryFoldersField gSourceDirectoryRoot 
+   end if 
+end chooseNewSourceFolder
+
+on fillSourcerDirectoryFoldersField tFolder
+   put tFolder into gSourceDirectoryRoot
+   set the customPropertySet of this stack to empty
+   set the Source_Directory_Root of this stack to gSourceDirectoryRoot
+   set the defaultFolder to gSourceDirectoryRoot
+   put the folders into gSourceDirectoryFolders
+   filter gSourceDirectoryFolders without ".."
+   sort gSourceDirectoryFolders
+   put gSourceDirectoryFolders into field "SourceDirectoryFoldersField"
+end FillSourcerDirectoryFoldersField
+
+on rootContentListField tFolder
+   put tFolder into gFirstLevelFolder
+   put gSourceDirectoryRoot & "/" & gFirstLevelFolder into gFirstLevelFolderPath
+   set the defaultFolder to gFirstLevelFolderPath
+   
+   put gFirstLevelFolderPath into field "pathfield"
+   put the files into gCurrentFileList
+   
+   sort gCurrentFileList
+   put gCurrentFileList into field "RootContentListField"
+   
+   if  number of lines of gCurrentFileList <>0 then 
+      put word 2 the selectedLine of field "RootContentListField" into N
+      if N is 0 or N is empty then put 1 into N
+      put line N of field "RootContentListField" into tFile
+      set the hilitedLine of field "RootContentListField" to N
+      fileTextField tFile
+   end if
+end RootContentListField
+
+on switchCustomPropertySet tCurrentPropertySet
+   put tCurrentPropertySet into gCurrentPropertySet
+end switchCustomPropertySet
+
+function quoted tWords
+   return quote & tWords & quote
+end quoted
+
+on fileTextField tFile
+   lock screen
+   put tFile into gFirstLevelFile
+   put "file:"& gFirstLevelFolderPath & "/" & gFirstLevelFile into gFirstLevelFilePath
+   put gFirstLevelFilePath into field "pathfield"
+   put URL  gFirstLevelFilePath  into gFirstLevelText
+   put gFirstLevelText into field "firstleveltextfield"
+   unlock screen
+end filetextfield
+
+on deleteContentFromFile tFile
+   lock screen
+   put tFile into gFirstLevelFile
+   put quoted("file:"& gSourceDirectoryRoot & "/" & gFirstLevelFile) into gFirstLevelFilePath
+   --put URL gFirstLevelFilePath into gFirstLevelText
+   put "" into gFirstLevelText
+   replace "/" with "\" in gFirstLevelFilePath
+   put gFirstLevelText into URL gFirstLevelFilePath
+   put gFirstLevelText into field "firstleveltextfield"
+   unlock screen
+end deleteContentFromFile
+
+--- the folder structure is game_name/game_property/game_property.txt & game_name/game_property/game_property_description.txt
+on ImportGamePropertyArrays
+   set the customPropertySets of this card to empty
+   
+   set the customPropertySet of this card to NewTemplate
+   set the customKeys of this card to empty
+   
+   -- iterate over the folders of directory 
+   repeat for each line gFirstLevelFolder in gSourceDirectoryFolders
+      put gSourceDirectoryRoot & "/" & gFirstLevelFolder into gFirstLevelFolderPath
+      
+      -- a prefix needs to be added to avoid interfering with the IDE properties
+      put "game_"&gFirstLevelFolder into gFirstLevelFolderArrayLabel
+      do "set the customPropertySet of this card to" &&  gFirstLevelFolderArrayLabel
+      
+      set the defaultFolder to gFirstLevelFolderPath
+      put gFirstLevelFolderPath into field "pathfield"
+      put the files into gCurrentFileList
+      --isolate the description text from the label lists
+      put gCurrentFileList into gLabelsFilesList
+      --filter lines of gLabelsFilesList with "*"&"labels"&"*"
+      filter lines of gLabelsFilesList without "*"&"_description"&"*"
+      put gCurrentFileList into gLabelsDescription
+      filter lines of gLabelsDescription with "*"&"_description"&"*"
+      if gLabelsDescription is not empty then put gLabelsDescription&  cr after allDescri
+      -- for now we only have these label files, what if more ?
+      put gLabelsFilesList into gCurrentFileList
+      filter lines of gCurrentFileList without empty
+      --- iterate over the files of the first level of folders
+      repeat for each line gFirstLevelFile in gCurrentFileList
+         --- get array named after the folder
+         
+         --- make sure to focus the property set 
+         do "set the customPropertySet of this card to" &&  gFirstLevelFolderArrayLabel
+         
+         --- get the content of the file
+         put "file:"& gFirstLevelFolderPath & "/" & gFirstLevelFile into gFirstLevelFilePath
+         put gFirstLevelFilePath into field "pathfield"
+         put URL  gFirstLevelFilePath  into gFirstLevelText
+         
+         --- remove extension
+         put char 1 to -5 of gFirstLevelFile into gFirstLevelArrayName
+         
+         --- remove "game_" header
+         set ItemDel to "_"
+         put gFirstLevelArrayName into gFirstLevelSubArrayLabel
+         
+         --- iterate over the text
+         put 0 into N
+         filter lines of gFirstLevelText without empty
+         repeat for each line L in gFirstLevelText
+            add 1 to N
+            --- move each line of text to an array  index
+            put L into gFirstLevelSubArrayLabel[padNumber(N,3)]
+         end repeat
+         
+         -- import the the description data and insert it amng the things here.
+         if gLabelsDescription is not empty then
+            put textfile.data(gFirstLevelFolderPath,gLabelsDescription) into gLabelsDescriptionText
+            put gLabelsDescriptionText into gFirstLevelSubArrayLabel["description"]
+            
+            -- lets try something special
+            set the customPropertySet of this card to description
+            put the customKeys of this card into tKeyList
+            put the game of this card into gGameDescriptionsArray
+            --put padNumber(number of lines of tKeyList+1,3) into tNewKey
+            replace "_description.txt" with empty in gLabelsDescription
+            replace "game_" with empty in gLabelsDescription
+            put gLabelsDescriptionText into gGameDescriptionsArray[gLabelsDescription]
+            set the game of this card to gGameDescriptionsArray
+            do "set the customPropertySet of this card to" &&  gFirstLevelFolderArrayLabel
+         end if
+         
+         -- store the array data in the custom property set of the card
+         if gFirstLevelArrayName is not empty and gFirstLevelSubArrayLabel is not empty then
+            do "set the" && gFirstLevelArrayName &&"of this card to gFirstLevelSubArrayLabel"
+         end if
+      end repeat
+   end repeat
+   put allDescri
+   set the customPropertySet of this card to empty
+end ImportGamePropertyArrays
+
+function textfile.data tPath,tFile
+   put "file:"& tPath & "/" & tFile into gCurrentFilePath
+   put gCurrentFilePath into field "pathfield"
+   put URL  gCurrentFilePath  into gCurrentFileText
+   return gCurrentFileText
+end textfile.data
+
+function padNumber tNum,tLen
+   put "padNumber("& tNum,tLen & ")" & cr after gDebug
+   put number of characters of tNum into tCount
+   repeat with i = 1 to tLen-tCount
+      put 0 before tNum
+   end repeat
+   return tNum
+end padNumber
+
+function emptyPuts
+   put the script of stack (the mainStack of this stack) into tScript
+   put tScript into tSubScript
+   put tScript into tier3
+   filter lines of tSubScript with "*put*"
+   Filter lines of tScript with "put*"
+   filter lines of tier3 with "*"&put&"*"
+   put tSubScript & cr & tScript & cr & tier3 into tScript
+   filter lines of tScript without "*into*"
+   filter lines of tScript without "*after*"
+   filter lines of tScript without "*before*"
+   filter lines of tScript without "--put*"
+   filter lines of tScript without "*--put*"
+   return tScript
+end emptyPuts
+
+on sourceDirectoryFoldersFieldPick tLabel
+   -- get the current property set
+   put "game_" & tLabel into gCurrentPropertySet
+   if bShowExamples then
+      set the customPropertySet of card "Example"  to gCurrentPropertySet
+      put the customKeys of  card "Example" into gSourceDirectoryFilesList
+   else
+      do "set the customPropertySet of this card to" && gCurrentPropertySet
+      put the customKeys of this card into gSourceDirectoryFilesList
+   end if
+   
+   put gSourceDirectoryFilesList into tList
+   replace "game_" with empty in tList
+   put tList into field "SourceDirectoryFilesListField"
+   
+   -- select the first line of the 'file list'
+   if number of lines of gSourceDirectoryFilesList >0 then 
+      set the hilitedLine of field "SourceDirectoryFilesListField" to 1
+      
+      -- display the selected file's content and pick the first line
+      put line 1 of gSourceDirectoryFilesList into gSelectedSourceDirectoryFile
+      -- pick line 1 of SourceDirectoryFilesListField
+      SourceDirectoryFilesListFieldPick gSelectedSourceDirectoryFile
+   end if
+   put "button,panel,art,menus,main_ui,labels,toggle,messages" into tUIItems
+   filter tUiItems with "*"&tLabel&"*"
+   
+end SourceDirectoryFoldersFieldPick 
+
+on sourceDirectoryFilesListFieldPick  tSelectedSourceDirectoryFile
+   lock screen
+   put "" into  field "GamePropertyDescriptionField"
+   
+   -- focus the current property set 
+   if bShowExamples then
+      set the customPropertySet of card "Example"  to gCurrentPropertySet
+      put the customKeys of  card "Example" into tKeys
+   else
+      do "set the customPropertySet of this card to" && gCurrentPropertySet
+      put the customKeys of this card into tKeys
+   end if
+   
+   
+   
+   -- the display name may not match the array name, lets find it
+   filter lines of tKeys with "*"&tSelectedSourceDirectoryFile
+   if number of lines of tKeys <>0 then
+      put line 1 of tKeys into gSelectedSourceDirectoryFile
+   else
+      put "" into gSelectedSourceDirectoryFile
+      exit SourceDirectoryFilesListFieldPick
+   end if
+   
+   -- get the selected  array 
+   if bShowExamples then
+      put the gSelectedSourceDirectoryFile of card "example" into gSelectedFileArray
+   else
+      do "put the" && gSelectedSourceDirectoryFile &&"of this card into gSelectedFileArray"
+   end if
+   
+   
+   
+   put the keys of gSelectedFileArray into gSelectedFileArrayKeys
+   sort gSelectedFileArrayKeys numeric ascending
+   put gSelectedFileArrayKeys into tKeys
+   
+   -- display the description information
+   if "description" is among the lines of gSelectedFileArrayKeys then 
+      put gSelectedFileArray["description"] into gCurrentDescription
+      put gCurrentDescription into field "GamePropertyDescriptionField"
+      unlock screen
+   end if
+   
+   put "" into gSelectedFileArrayContentList
+   --display the data / keys in the list field we only want the enumerated index for labels
+   repeat for each line L in gSelectedFileArrayKeys
+      if char 1 of L is a number then put gSelectedFileArray[L] & cr after gSelectedFileArrayContentList
+   end repeat
+   
+   filter lines of gSelectedFileArrayContentList without empty
+   put gSelectedFileArrayContentList into field "SelectedFileArrayContentListField"
+   
+   -- select line 1 of the data and pass it to the edit field
+   if gSelectedFileArrayContentList is not empty then
+      set the hilitedLine of field "SelectedFileArrayContentListField" to 1
+      put line 1 of gSelectedFileArrayContentList into gSelectedFileArrayContentSelection
+      send SelectLineOfFirstLevelTextField && 1 to field "SelectedFileArrayContentListField"
+   end if
+   unlock screen
+end SourceDirectoryFilesListFieldPick
+
+on labelContentFieldTextChanged tChangedText
+   if tChangedText is empty then put line 1 of  field "LabelContentField" into tChangedText
+   put word 2 the selectedLine of field "SelectedFileArrayContentListField" into tNLine
+   -- get the label of the content being edited
+   -- put tNline &".[" & tChangedText &"]" into gSelectedFileArrayContentSelection
+   put tChangedText into gSelectedFileArrayContentSelection
+   put padNumber(tNline,3) into gCurrentKeyIndex
+   
+   put gSelectedFileArrayContentSelection into gSelectedFileArray[gCurrentKeyIndex]
+   put the keys of gSelectedFileArray into gSelectedFileArrayKeys
+   sort gSelectedFileArrayKeys numeric ascending
+   put "" into gSelectedFileArrayContentList
+   filter lines of gSelectedFileArrayKeys without "description"
+   repeat for each line L in gSelectedFileArrayKeys
+      put gSelectedFileArray[L] & cr after gSelectedFileArrayContentList
+   end repeat
+   filter lines of gSelectedFileArrayContentList without empty
+   put gSelectedFileArrayContentList into field "SelectedFileArrayContentListField"
+   do "set the" && gSelectedSourceDirectoryFile &&"of this card to gSelectedFileArray"
+   
+   set the hilitedLine of field "SelectedFileArrayContentListField" to tNLine
+   unlock screen
+end LabelContentFieldTextChanged
+
+on objectPropertyToggleChanged tButtonName,tBool
+   put the customPropertySet of this card into gCurrentPropertySet 
+   set the customPropertyset of this card to Game_UI_Properties
+   do "put the" && gSelectedSourceDirectoryFile &&"of this card into gSelectedUIArray"
+   put gSelectedUIArray[gSelectedFileArrayKeyIndex]  into gCurrentUITarget
+   --- going to save to matching index of labels put gSelectedUIArray[ gSelectedFileArrayKeyIndex ]
+   
+   -- put the toggle value into the toggle bool
+   do "put" && tBool &&"into g" &tButtonName
+   put "visible,opaque,showName,autoHilite,sharedHilite,traversalOn,showFocusBorder,default,disabled,threeD,showBorder" into gButtonPropertyBoolItems
+   put "" into gCurrentPropertiesStates
+   -- iterate over all the toggle buttons  and collect their state into the array
+   repeat for each item I in gButtonPropertyBoolItems
+      do  "put  hilite of button" &&  I  &"checkBox into g" & I
+      put "put hilite of button" && i &"checkBox into gCurrentUITarget[" & I &"]" & cr after  tCom
+      put I && hilite of button (i &"checkbox") && cr after gCurrentPropertiesStates
+   end repeat
+   do tcom
+   put gCurrentPropertiesStates into gSelectedUIArray[gSelectedFileArrayKeyIndex]
+   do "set the" && gSelectedSourceDirectoryFile &&"of this card to gSelectedUIArray" 
+   
+   set the customPropertySet of this card to gCurrentPropertySet
+end objectPropertyToggleChanged
+
+on gamePropertyDescriptFieldTextChanged
+   set itemDel to"_"
+   do "put the" && gSelectedSourceDirectoryFile &&"of this card into gSelectedFileArray"
+   put   "gSelectedFileArray[" & quoted("description") &"]" into gSelectedSourceDirectoryFileDescriptionNode
+   put line 1 to -1 of  field "GamePropertyDescriptionField" into gCurrentDescription
+   -- store the changed description on the current customPropertySet array
+   do "put  gCurrentDescription into" &&  gSelectedSourceDirectoryFileDescriptionNode
+   do "set the" && gSelectedSourceDirectoryFile &&"of this card to gSelectedFileArray"
+   set itemDel to comma
+end GamePropertyDescriptFieldTextChanged
+
+function filterStackScriptForGlobals tGlobalPrefix
+   if tGlobalPrefix is an integer then put numtochar(tGlobalPrefix) into tGlobalPrefix
+   if tGlobalPrefix is  empty then put "g" into tGlobalPrefix
+   put tGlobalPrefix into gGlobalPrefixChar
+   put the script of this stack into tScript
+   put tScript into tGlobals
+   filter tGlobals with "global " &"*"
+   --filter tscript without "global " &"*"
+   repeat with i = 1 to 64
+      if  i < 10 or i > 11  or i <> 46 or i <> 95 then
+         replace numtochar(i) with cr in tScript
+      end if
+   end repeat
+   filter lines of tScript without empty
+   repeat with i = 91 to 255
+      if i < 97 or i > 122 and i <> 46 and i <> 95 then
+         replace  numtochar(i) with cr in tScript
+      end if
+   end repeat
+   filter lines of tScript with "*"&gGlobalPrefixChar&"*"
+   filter lines of tScript with gGlobalPrefixChar&"*"
+   put "" into gFoundGlobals
+   repeat with i = number of lines of tScript down to 1
+      put line i of tscript into tGlobalName
+      filter  lines of tScript  without tGlobalName
+      -- only matching character for globals gGlob DO_SOMETHING etc
+      if chartonum(char 1 of tGlobalName) = chartonum(char 1 of gGlobalPrefixChar) then
+         if chartonum(char 2 of tGlobalName) >= 65 and chartonum(char 2 of tGlobalName) <=  90 then 
+            put tGlobalName & cr after gFoundGlobals
+         end if
+      end if
+   end repeat
+   filter lines of gFoundGlobals without empty
+   sort gFoundGlobals
+   return gFoundGlobals
+end filterStackScriptForGlobals
+
+on objectPropertyDimensionChanged tFocusedField
+   put the customPropertySet of this card into gCurrentPropertySet 
+   set the customPropertyset of this card to Game_UI_Properties
+   put "width,height,x,y,left,top,right,bottom" into gButtonPropertyGeometryFields
+   set itemDel to comma
+   lock screen
+   lock messages
+   repeat for each item I in gButtonPropertyGeometryFields
+      do "put field"&& quote & I&   "field" &quote&&"into g" &I
+   end repeat
+   switch tFocusedField
+      case "widthField"
+         put gLeft+gWidth into gRight
+         put gRight into field "rightField"
+         put gWidth/2 into gX
+         put gX into field "xField"
+         break
+      case "heightField"
+         put gTop+gHeight into gBottom
+         put gBottom into field "bottomField"
+         put gHeight/2 into gY
+         put gY into field "xField"
+         break
+         
+      case "leftField"
+      case "rightField"
+         put  gRight - gLeft  into gWidth
+         put gWidth into field "wdithfield"
+         put gLeft+gWidth /2 into gX
+         put gX into field "xField"
+         break
+         
+      case "topField"
+      case "bottomField"
+         put gTop - gBottom into gHeight
+         put gHeight into field "heightfield"
+         put gTop+gHeight /2 into gY
+         put gY into field "yField"
+         break
+   end switch
+   unlock messages
+   unlock screen
+   updateUIPropertiesDataFromControls
+   set the customPropertySet of this card to gCurrentPropertySet
+end objectPropertyDimensionChanged
+
+on addScriptsToObjectPropertyFields
+   put "" into gObjectPropertyFieldsScript
+   put "returnInField,textChanged" into tHandlers
+   set itemDel to comma
+   repeat for each item  I in tHandlers
+      put the script of this stack into tScript
+      put "script_field_objectgeometry_"&i  into tHandler
+      put lineOffset(tHandler,tScript) into tStart
+      put lineOffset("end"&&tHandler,tScript) into tEnd
+      put line tStart to tEnd of tScript &cr& cr after gObjectPropertyFieldsScript
+   end repeat
+   
+   put "width,height,x,y,left,top,right,bottom" into gObjectGeometryLabels
+   replace "script_field_objectgeometry_" with empty in gObjectPropertyFieldsScript
+   repeat for each item I in gObjectGeometryLabels
+      do "set the script of field " && quote &I &"field" &quote && "to gObjectPropertyFieldsScript"
+   end repeat
+end addScriptsToObjectPropertyFields
+
+on generateButtonPropertyBoolButtons
+   put "visible,opaque,showName,autoHilite,sharedHilite,traversalOn,showFocusBorder,default,disabled,threeD,showBorder" into gButtonPropertyBoolItems
+   put "mouseUp" into tHandlers
+   repeat for each item  I in tHandlers
+      put the script of this stack into tScript
+      put "script_button_object_property_toggle_"&i  into tHandler
+      put lineOffset(tHandler,tScript) into tStart
+      put lineOffset("end"&&tHandler,tScript) into tEnd
+      put line tStart to tEnd of tScript &cr& cr after gObjectPropertyCheckBoxScript
+   end repeat
+   replace "script_button_object_property_toggle_" with empty in gObjectPropertyCheckBoxScript
+   set the script of the templateButton to gObjectPropertyCheckBoxScript
+   
+   set the style of the templateButton to "checkbox"
+   set the width of the templatebutton to 140
+   set the left of the templateButton to the right of button "fieldresizerbutton"+10
+   set the height of the templateButton to 24
+   put 0 into N
+   
+   repeat for each item I in gButtonPropertyBoolItems
+      set the Name of the templatebutton to I&"CheckBox"
+      set the label of the templateButton to I
+      set the top of  the templateButton to bottom of group "objectgeometrygroup" +(24*N)
+      add 1 to N
+      if there is a button ( I&"CheckBox") then delete button ( I&"CheckBox")
+      create Button
+   end repeat
+end GenerateButtonPropertyBoolButtons
+
+on generateFileArrayExample
+   set the customPropertySet of this card to "game_files"
+   put the game_files of this card into tthing
+   put "LivecodeScript,mp3,ogg,png,points,jpg,txt" into tEx
+   set itemDel to comma
+   put 0 into n
+   repeat for each item i in tEx
+      add 1 to n
+      put padNumber(n,3) into tPref
+      -- put N&".[" & I & "]" into tText
+      put I into tText
+      put tText into tThing[tPref]
+   end repeat
+   set the game_files of this card to tThing
+end generateFileArrayExample
+

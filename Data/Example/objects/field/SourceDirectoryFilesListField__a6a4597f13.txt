@@ -1,0 +1,18 @@
+-- generic field script
+-- source: GenericaProperties_03182026a
+-- used by 1 object(s): field "SourceDirectoryFilesListField" (id 1005)
+-- handlers: mouseDown, arrowKey
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseDown
+   put word 2 the selectedLine of me into N
+   put line N  of me into tArrayLabel
+   SourceDirectoryFilesListFieldPick tArrayLabel
+end mouseDown
+
+on arrowKey
+   put word 2 the selectedLine of me into N
+   put line N  of me into tArrayLabel
+   SourceDirectoryFilesListFieldPick tArrayLabel
+   pass arrowkey
+end arrowkey

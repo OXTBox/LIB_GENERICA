@@ -1,0 +1,81 @@
+-- generic field script
+-- source: GenericaProperties_03182026a
+-- used by 1 object(s): field "SelectedFileArrayContentListField" (id 1009)
+-- handlers: mouseDown, nextLineInFirstLevelTextField, SelectLineOfFirstLevelTextField, parseContextText, myContextIsALabel, mouseUp, myContextIsAText, arrowKey, viewCurrentLine
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+global myContextText
+
+on mouseDown
+   put "" into myContextText
+   put word 2 selectedLine of me into N
+   SelectLineOfFirstLevelTextField N
+end mouseDown
+
+on nextLineInFirstLevelTextField
+   put word 2 selectedLine of me into N
+   set the hilitedLine of me to N+1
+   SelectLineOfFirstLevelTextField N+1
+end nextLineInFirstLevelTextField
+
+on SelectLineOfFirstLevelTextField tLineN
+   put line tLineN of me into myContextText
+   if myContextText is not empty then
+      parseContextText 
+      -- + 1 for 'description' mission...but that seems iffy
+    SelectedFileArrayContentListFieldPick tLineN+1
+    end if
+end SelectLineOfFirstLevelTextField
+
+on parseContextText 
+   --set itemDel to "[" 
+   --if number of items of myContextText > 1 then
+      myContextIsALabel
+   --else
+      --myContextIsAText
+   --end if
+   set itemDel to comma
+end parseContextText 
+
+on myContextIsALabel 
+   lock screen
+   put "Label:" into field "ContentLabel" 
+   show field "LabelContentField"
+   hide field "SecondLevelTextContextField"
+   put  myContextText into myShortContext
+   set the currentText of field "LabelContentField" to myShortContext
+   set the undoText of field "LabelContentField" to myShortContext
+   set the contextText of field "LabelContentField" to myContexText
+   put myShortContext into field "LabelContentField"
+   unlock screen
+end myContextIsALabel
+
+--- redirect the user to the field input
+on mouseUp
+   if visible of  field "LabelContentField" then click button 1 at the loc of  field "LabelContentField"
+   if visible of  field "SecondLevelTextContextField" then click button 1 at the loc of  field "SecondLevelTextContextField"
+end MouseUp
+
+on myContextIsAText
+   lock screen
+   put "Text:" into field "ContentLabel" 
+   show field "SecondLevelTextContextField"
+   hide field "LabelContentField"
+   put char 1 to -1 of myContextText into myShortContext
+   set the currentText of field "SecondLevelTextContextField" to myShortContext
+   set the undoText of field "SecondLevelTextContextField" to myShortContext
+   set the contextText of field "SecondLevelTextContextField" to myContexText
+   put myShortContext into field "SecondLevelTextContextField"
+   unlock screen
+end myContextIsAText
+
+on arrowKey
+   send viewCurrentLine to me in 30 milliseconds
+   pass arrowkey
+end arrowkey
+
+on viewCurrentLine
+   put word 2 the selectedLine of me into N
+   SelectLineOfFirstLevelTextField N
+   --FileListField tFolder
+end viewCurrentLine

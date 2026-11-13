@@ -1,0 +1,17 @@
+-- script block: Toggle (handlers whose names start with "Toggle"; GAD scriptBlocks)
+-- source: GenericaProperties_03182026a
+-- handlers: 2
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GenericaProperties_03182026a
+
+on toggleShowExamples bShow
+   put bShow into bShowExamples
+   sourceDirectoryFoldersFieldPick (char 6 to -1 of gCurrentPropertySet)
+end toggleShowExamples
+
+on ToggleHasGUI tBool
+   put tBool into gCurrentArrayKeyHasGUI
+   set the visible of group  "UI_Object_Properties_Group" to tBool
+end ToggleHasGUI
+

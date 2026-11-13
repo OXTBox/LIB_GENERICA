@@ -1,0 +1,105 @@
+-- script block: Clear (handlers whose names start with "Clear"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 6
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on clearDebug
+   ops.setDebug ("00019 clearDebug")
+   put "" into gErrorIndent
+   string.writeFile
+   -- we actually want to capture some data
+end clearDebug
+
+on clearGameObjectSelection gID,tType
+   ops.setDebug ("00020 clearGameObjectSelection" && gID &&tType )
+   put "" into gErrorIndent
+   set the previousSelection of this stack to gSelectedObject
+   put "ID,type,x,y,parent,build,assembly,population,production,prudence,civilization,motivation,education,level,life,sendto" into gGameObjectProperties
+   set the currentSelecton of this stack to empty
+   put "Index,Data,List,Selection,Points,Array" into tProps
+   put   1 into gErrorIndent
+   repeat for each item i in tProps
+      put "" into gErrorIndent
+      put "  put" && quote & quote &&" into g" &tType&i & cr after tScript
+   end repeat
+   put cr after tScript
+   put   1 into gErrorIndent
+   repeat for each item i in gGameObjectProperties
+      put "" into gErrorIndent
+      put "  put" && quote & quote &&" into g" &tType&i & cr after tScript
+   end repeat
+   put "" into gSelectedObject
+   do tScript
+end clearGameObjectSelection
+
+on clearGraphics
+   ops.setDebug ("00021 clearGraphics")
+   put "" into gErrorIndent
+   repeat with i = number of graphics of this stack down to 1
+      put "" into gErrorIndent
+      delete graphic i of this stack
+   end repeat
+end clearGraphics
+
+on clearMobilePathIndex
+   ops.setDebug ("00022 clearMobilePathIndex")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to "PathData"
+   put the customKeys of this stack into gMobilePathDataArray
+   filter lines of gMobilePathDataList without gMobilePathIndexLabel
+   set the customKeys this stack to gMobilePathDataList
+   do "set the" && gMobilePathIndexLabel &&"of this stack to gMobilePathPoints"
+   subtract 1 from gGameObjectsCount
+   ops.emptyDataSet
+end clearMobilePathIndex
+
+on ClearPath
+   ops.setDebug ("00023 ClearPath")
+   put "" into gErrorIndent
+   ops.emptyDataSet
+   put the currentSelection of this stack into gSelectedObject
+   put word 2 of gSelectedObject into objName
+   if objName is empty then exit clearPath
+   if gGameTool is "base" then
+      set the SendTo of grc objName to empty
+      set the points of graphic "SendTopath" to empty
+   end if
+   if gGameTool is "mobile" then
+      put "p" into char 1 of gMobilePathIndexLabel
+      if there is a graphic gMobilePathIndexLabel then 
+         delete graphic gMobilePathIndexLabel
+         set the customPropertySet of this stack to "PathData"
+         put the customKeys of this stack into gPathDataList
+         filter lines of gPathDataList without gMobilePathIndexLabel&"*"
+         --delete variable gMobilePathIndexLabel of this stack
+         set the customKeys of this stack to gPathDataList
+         ops.emptyDataSet
+         UpdateMobileFields
+      end if
+   end if
+end ClearPath
+
+on ClearSelectedPathPoint
+   ops.setDebug ("00024 ClearSelectedPathPoint")
+   put "" into gErrorIndent
+   lock screen
+   ops.emptyDataSet
+   put the selectedPathPoint of this stack into tSelPoint
+   set the customPropertySet of this stack to "PathData"
+   put "p"& char 2 to -1 of gMobileIndexLabel into gMobilePathIndexLabel
+   put the gMobilePathIndexLabel of this stack into tPoints
+   	   
+   --put line 1 to -1 of the points of graphic gMobilePathIndexLabel into tPoints
+   put line 1 to (item 1 of tSelPoint) of tPoints &cr& line (item 1 of tSelPoint+2) to -1 of tPoints into tNewPoints
+   set the points of graphic gMobilePathIndexLabel to tNewPoints
+   	   
+   --do "put the"&& gMobilePath &&" of this stack into tPathData"
+   do "set the"&& gMobilePathIndexLabel &&"of this stack to line 1 to -1 of tNewPoints"
+   ops.emptyDataSet
+   UpdateMobileFields
+   
+   unlock screen
+end ClearSelectedPathPoint
+

@@ -1,0 +1,32 @@
+-- generic field script
+-- source: GenericaProperties_03182026a
+-- used by 1 object(s): field "GamePropertyDescriptionField" (id 1016)
+-- handlers: returnInField, textChanged, expandFieldSize
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on returnInField
+   lock screen
+      unlock screen
+   pass returnInField
+end returnInField
+
+on textChanged
+   set the customPropertySet of me to empty
+   put the undoText of me into tUndosArray
+   put the keys of tUndosarray into tUndoKeys
+   put number of lines of tUndoKeys+1 into tNewN
+   put cr& line 1 of me after tUndosArray[tNewN]
+   set the undoText of me  to tUndosArray
+   GamePropertyDescriptFieldTextChanged (line 1 to -1 of me)
+   pass textChanged
+end textChanged
+
+
+on expandFieldSize
+   lock screen
+   put the rect of me into myRect
+   put the beginHeight of me*(the number of lines of me+.124) into myNewHeight
+   put item 2 of myRect + myNewHeight into item 4 of myRect
+   set the rect of me to myRect
+   unlock screen
+end expandFieldSize

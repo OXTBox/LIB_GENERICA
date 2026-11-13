@@ -1,0 +1,180 @@
+-- script block: Math (handlers whose names start with "Math"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 17
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on Math.CheckGlobalMaxiMini tMin,tMax
+   ops.setDebug ("00129 Math.CheckGlobalMaxiMini" && tMin &&tMax )
+   put "" into gErrorIndent
+   repeat for each item I in gBaseManagementItems
+      do "if g"& I & "> tMax then put tMax into g" & i 
+      do "if g"& I & "< tMin then put tMin into g" & i 
+      do "GameObject."&I && "g"&I    -- set the data to min/max in the data set via global
+   end repeat
+end Math.CheckGlobalMaxiMini
+
+on Math.setMapDensityStep tIndex
+   ops.setDebug ("00130 Math.setMapDensityStep" && tIndex )
+   put "" into gErrorIndent
+   put itemOffset(tIndex,"Least,Less,Average,Most") into gBaseDensityIndex
+   switch gBaseDensityIndex
+      case 1
+         put 64 into gMapDensityStep
+         break
+      case 2
+         put 32 into gMapDensityStep
+         break
+      case 3
+         put 16 into gMapDensityStep
+         break
+      case 4
+         put 8 into gMapDensityStep
+         break
+         	         
+   end switch
+end Math.setMapDensityStep
+
+--- only works for a straight line
+function Math.subdividePolygon tStart, tEnd, tsubdivisions
+   put item 1 of tStart into x1
+   put item 2 of tStart into y1
+   put item 1 of tEnd into x2
+   put item 2 of tEnd into y2
+   put x1 & "," & y1 & cr into myPolygonPoints
+   repeat with i = 1 to tsubdivisions
+      put (x1 + i * (x2 - x1) / tsubdivisions) & "," & (y1 + i * (y2 - y1) / tsubdivisions) & cr after myPolygonPoints
+   end repeat
+   filter lines of myPolygonPoints without empty
+   return myPolygonPoints
+end  Math.subdividePolygon
+
+function Math.averageOfManagerScrollBars
+ops.setDebug ("00278 Math.averageOfManagerScrollBars")
+put "" into gErrorIndent
+	   return (((gCivilization+gMotivation+gEducation)/3) + ((gPopulation+gProduction+gPrudence)/3))/2
+end Math.averageOfManagerScrollBars
+
+function Math.binaryAddedItems n
+ops.setDebug ("00279 Math.binaryAddedItems")
+put "" into gErrorIndent
+	   ops.setDebug "binaryAddedItems"
+	   put 1 into i
+	   repeat with j =1 to n 
+	      put i & comma after k
+	      add k to k
+   end repeat
+	   return (char 1 to -2 of k)
+end Math.binaryAddedItems
+
+function Math.DeltaToTarget x1,y1,x2,y2
+ops.setDebug ("00280 Math.DeltaToTarget")
+put "" into gErrorIndent
+	   repeat with i = 0 to 1 step 0.01
+	      put x1 +(x2 - x1) *i into newX
+	      put y1 +(y2 - y1) *i into newY
+	      put newX & comma & newY & cr after tPathToTarget
+   end repeat
+	   --// use the first and last line of the point list to determine the x,y delta
+	   put line 1 of tPathToTarget into axy
+	   put line -1 of tPathToTarget into bxy
+	   put (item 1 of bxy - item 1 of axy)/100 into dx
+	   put (item 2 of bxy - item 2 of axy)/100 into dy
+	   return dx,dy
+end Math.DeltaToTarget
+
+function Math.deltaVal a,b
+ops.setDebug ("00281 Math.deltaVal")
+put "" into gErrorIndent
+	   return b-a
+end Math.deltaVal
+
+function Math.EndPoint x1,x2,y1,y2,magnitude
+ops.setDebug ("00283 Math.EndPoint")
+put "" into gErrorIndent
+	   put floor((x1+x2)/2)+deltaVal(x1,x2)*magnitude into x3
+	   put floor((y1+y2)/2)+deltaVal(y1,y2)*magnitude into y3
+	   return x3,y3
+end Math.EndPoint
+
+function Math.ExpandRect tAmount,tRect
+ops.setDebug ("00284 Math.ExpandRect")
+put "" into gErrorIndent
+	   repeat for each item i in tRect
+	      add tAmount to i
+	      put i& comma after xrect
+   end repeat
+	   return char 1 to -2 of xrect
+end Math.ExpandRect
+
+function Math.floorData tData
+ops.setDebug ("00285 Math.floorData")
+put "" into gErrorIndent
+	   repeat for each line L in tData
+	      put "" into tProc
+	      repeat for each item I in L
+	         put floor(i)&comma after tProc
+      end repeat
+	      put char 1 to -2 of tProc & cr after tResult
+   end repeat
+	   return line 1 to -1 of tResult
+end Math.floorData
+
+function math.getRandom tMax
+ops.setDebug ("00286 math.getRandom")
+put "" into gErrorIndent
+	   set the randomSeed to the seconds 
+	   repeat with i = 1 to number of chars of tMax
+	      put random(10)-1 after tRnd
+   end repeat
+	   if tRnd > tMax then put tMax into tRnd
+	   return tRnd
+end math.getRandom
+
+function math.getSpeed maxDistance,maxLevel,currentLevel
+ops.setDebug ("00287 math.getSpeed")
+put "" into gErrorIndent
+	   return ((maxDistance-1)/maxLevel-1)*((currentLevel-1)/maxLevel-1)+maxLevel
+end math.getSpeed
+
+function Math.lerp pStart, pEnd, pAmount
+ops.setDebug ("00288 Math.lerp")
+put "" into gErrorIndent
+	   return (1 - pAmount) * pStart + pAmount * pEnd
+end Math.lerp
+
+function Math.mapToRange tSource,tRange,tMapMax
+ops.setDebug ("00289 Math.mapToRange")
+put "" into gErrorIndent
+	   put (tMapMax/(tRange-1)) * (tSource - 1) + 1 into tVal
+	   return round(tVal)
+end Math.mapToRange
+
+function Math.MidPoint x1,x2,y1,y2
+ops.setDebug ("00290 Math.MidPoint")
+put "" into gErrorIndent
+	   put floor((x1+x2)/2) into x3
+	   put floor((y1+y2)/2) into y3
+	   return x3,y3
+end Math.MidPoint
+
+function Math.pathToTarget x1,y1,x2,y2
+ops.setDebug ("00291 Math.pathToTarget")
+put "" into gErrorIndent
+	   ops.setDebug "math.pathToTarget"
+	   repeat with i = 0 to 1 step 0.01
+	      put x1 +(x2 - x1) *i into newX
+	      put y1 +(y2 - y1) *i into newY
+	      put newX & comma & newY & cr after tPathToTarget
+   end repeat
+	   return tPathToTarget
+end Math.pathToTarget
+
+function Math.randomAIshift tMax
+ops.setDebug ("00292 Math.randomAIshift")
+put "" into gErrorIndent
+	   put (random(tMax) - random(tMax)) * ( random(3) -2 ) into tChange
+	   return tChange
+end Math.randomAIShift
+

@@ -1,0 +1,653 @@
+-- script block: UI (handlers whose names start with "UI"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 38
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on UI.SelectionCircle
+   ops.setDebug ("00214 UI.selectionCircle")
+   put "" into gErrorIndent
+   GameObject.selectionCircle 
+end UI.SelectionCircle
+
+on UI.AdjustSliders tVal,tOldval,tPrefGoal
+   ops.setDebug ("00189 UI.AdjustSliders" && tVal &&tOldval &&tPrefGoal )
+   put "   " into gErrorIndent
+   put "BASE" into gGameObjectTypeLabel
+   put "BASEDATA" into gGameObjectTypeData
+   lock screen
+   lock messages
+   put "population,production,prudence" into tGoals
+   if tVal < tOldval then 
+      put 1 into tModifier
+   else
+      put -1 into tModifier
+   end if
+   set itemDel to comma
+   repeat for each item tBaseGoal in tGoals
+      if tBaseGoal is not tPrefGoal then 
+         put "GameObject." & tBaseGoal && "(g"&tBaseGoal&&"+"&&tModifier&")" & cr after ADJUST_SLIDERS_FAIRLY_SCRIPT
+         
+      else
+         put "GameObject." & tBaseGoal && tVal &cr after ADJUST_SLIDERS_FAIRLY_SCRIPT
+      end if
+   end repeat
+   put "lock screen" & cr & "lock messages" & cr before ADJUST_SLIDERS_FAIRLY_SCRIPT
+   put "Math.CheckGlobalMaxiMini 1,33" & cr after ADJUST_SLIDERS_FAIRLY_SCRIPT
+   
+   put "unlock screen" & cr & "unlock messages" after ADJUST_SLIDERS_FAIRLY_SCRIPT
+
+   do ADJUST_SLIDERS_FAIRLY_SCRIPT 
+   --- ave the script to the stack for review	   
+   setgameScriptProperty "AdjustSlidersFairly_script","ADJUST_SLIDERS_FAIRLY_SCRIPT",ADJUST_SLIDERS_FAIRLY_SCRIPT	   
+   unlock screen
+   unlock messages
+ 
+   if word 1 of gSelectedObject is "base" & word 2 of  gSelectedObject is not empty then UI.refreshBase
+   	   
+end UI.AdjustSliders
+
+on UI.CenterOnSelected
+   ops.setDebug ("00190 UI.CenterOnSelected")
+   put "" into gErrorIndent
+   put getRelativeLocFromObjects(gGameObjectIndexLabel,loc of group "map",gZoomLevel) into OXY
+   --put the originXY of graphic gGameObjectIndexLabel into OXY
+   put item 1 the loc of group "Map"+ item 1 of OXY*-1 into gScrollOffsetX
+   put item 2 the loc of group "Map" +item 2 of OXY*-1 into gScrollOffsetY
+end UI.CenterOnSelected
+
+on UI.clearBaseFields 
+   ops.setDebug ("00191 UI.clearBaseFields")
+   put "" into gErrorIndent
+   put "" into field "GameObjectProperties"
+   put "" into field "baseListField"
+   put empty into field "selectedBaseLabel"
+   put empty into field "BaseLevelLabel"
+   put empty into field "BaseLifeLabel"
+end UI.clearBaseFields 
+
+on UI.clearGameGraphics
+   ops.setDebug ("00192 UI.clearGameGraphics")
+   put "" into gErrorIndent
+   repeat with i = the number of graphics of stack (the mainStack of this stack) down to 1
+      -- Get the graphic object at this position
+      put the short name of graphic i of stack (the mainStack of this stack) into tGraphicName
+      --if char 1 of  tGraphicName is "x" then put "9999" into tGraphicName
+      if char 2 of tGraphicName is not "_" then next repeat
+      delete graphic i of this stack
+   end repeat
+end UI.clearGameGraphics
+
+on UI.clearOffsetXOffsetY
+   ops.setDebug ("00193 UI.clearOffsetXOffsetY")
+   put "" into gErrorIndent
+   put gScrollOffsetX/3 into  gScrollOffsetX 
+   put gScrollOffsetY/3 into  gScrollOffsetY
+end UI.clearOffsetXOffsetY
+
+on UI.consoleWrite 
+   --- ops.setDebug ("00194 UI.consoleWrite") !! RECURSION
+   --put "" into gErrorIndent
+   if bsilentConsole is true then exit UI.consoleWrite
+   lock messages
+   lock screen
+   put line -256 to -1 gDebug &cr  into field "Console" 
+   set the layer of field "Console" to top
+   set the vscroll of field "console" to 1+the textSize of field "console"+the textHeight of field "console"
+   unlock screen
+   unlock messages
+end UI.consoleWrite
+
+on UI.createBaseGraphic x,y,gGameObjectIndexLabel
+   ops.setDebug ("00195 UI.createBaseGraphic" && x &&y &&gGameObjectIndexLabel )
+   put "" into gErrorIndent
+   Base.defineGraphicObject x,y,gGameObjectIndexLabel,"base"
+   if there is a graphic gGameObjectIndexLabel then delete graphic gGameObjectIndexLabel
+   GameObject.initBaseScriptText
+   set the script of the templateGraphic  to ("--gBaseScriptText" & cr & gBaseScriptText)
+   create graphic gGameObjectIndexLabel 
+   -- originXY is used for a static position to scale to and from, 
+   -- originXY is variable value for mobile objects but always relative to the initial scale
+   set the originXY of graphic gGameObjectIndexLabel to x &comma & Y 
+end UI.createBaseGraphic
+
+on UI.createCenterXYgraphic
+   ops.setDebug ("00196 UI.createCenterXYgraphic")
+   put "" into gErrorIndent
+   set the style of the templateGraphic to polygon
+   set the points of the templategraphic to "rectangle"
+   set the visible of the templateGraphic to false
+   set the name of the templateGraphic to "centerXY"
+   set the loc of the templateGraphic to the loc of group "Map"
+   create graphic "centerXY"
+end UI.createCenterXYgraphic
+
+on UI.createMobileGraphic gGameObjectIndexLabel
+   ops.setDebug ("00197 UI.createMobileGraphic" && gGameObjectIndexLabel )
+   put "" into gErrorIndent
+   put item 1 of gMobileData into gMobileID
+   
+   --- define the visual appearance of the mobile
+   UI.defineGraphicTriangle "mobile"
+   	   
+   --- get the location of the source base
+   --put the loc of graphic  gGameObjectIndexLabel into gMobileSpawnLoc
+   put the originXY of graphic  gGameObjectIndexLabel into gMobileSpawnLoc
+   
+   ops.setDebug ("00197 UI.createMobileGraphic create graphic gMobileIndexLabel=" && gMobileIndexLabel )	 
+   --- create the graphic object
+   set the loc of the templateGraphic to loc of graphic gGameObjectIndexLabel
+   create graphic gMobileIndexLabel
+   set the originXY of graphic (gMobileIndexLabel ) to gMobileSpawnLoc
+   
+   put item 1 of gMobileSpawnLoc into item xItem of gMobileData
+   put item 2 of gMobileSpawnLoc into item yItem of gMobileData
+   
+   -- set the data on the object
+   set the mobile of graphic gMobileIndexLabel  to gMobileData
+   set the customPropertySet of this stack to MobileData
+   do "set the" && gMobileIndexLabel && "of this stack to gMobileData"
+   ops.emptydataset
+   	   
+   -- hmm maybe we can use Build & Assembly items for travelIndex and Lerp?
+   set the travelIndex of graphic gMobileIndexLabel  to 1
+   set the lerpProgress of graphic gMobileIndexLabel  to 0.1
+   --UI.zoomedMap
+   	   
+end UI.createMobileGraphic
+
+on UI.createPathFromSendTo 
+   ops.setDebug ("00198 UI.createPathFromSendTo gMobileIndexLabel gSendTo" && quoted(gMobileIndexLabel)  && quoted(gSendTo))
+   put "" into gErrorIndent
+   if gMobileIndexLabel is empty or char 1 of gMobileIndexLabel is "d" or char 1 of gMobileIndexLabel is "b" then exit UI.createPathFromSendTo    
+   lock screen
+   UI.createPathGraphic
+   	   
+   put the originXY of graphic (gGameObjectIndexLabel) into tOriginLoc   --- maybe here is where we use gSelectedBase
+   if there is a graphic gSendTo then
+      put Math.SubdividePolygon(tOriginLoc,the originXY of graphic gSendTo,10) into gOriginPoints
+      --put tOriginLoc &cr & the originXY of graphic gSendTo into tPoints   --- original style
+      set the SendToSource of graphic gMobilePathIndexLabel to gGameObjectIndexLabel
+      set the SendToDestination of graphic gMobilePathIndexLabel to gSendTo
+      set the points of graphic gMobilePathIndexLabel to gOriginPoints 
+      
+      set the OriginXYPoints of graphic gMobilePathIndexLabel to gOriginPoints
+      set the customPropertySet of this stack to "PathData"
+      --- these are the unscaled points -- we need these for setting originxy of objects later
+      do "set the" && gMobilePathIndexLabel && "of this stack to gOriginPoints"
+      ops.emptydataset
+      
+      ---- now set it to the current points which is scaled, without the whole map zoom thing
+      put the loc of graphic gGameObjectIndexLabel into gSoureLoc
+      put the loc of graphic gSendTo into gSentToLoc
+      put Math.SubdividePolygon(gSoureLoc,gSentToLoc,10) into gScaledPoints
+      set the points of graphic gMobilePathIndexLabel to gScaledPoints 
+      
+      --UI.ZoomedMap
+   end if
+   unlock screen   
+end UI.createPathFromSendTo
+
+on UI.createPathGraphic
+   ops.setDebug ("00199 UI.createPathGraphic")
+   put "" into gErrorIndent 
+   if char 1 of gMobileIndexLabel is "d" then exit UI.createPathGraphic    
+   put gMobileIndexLabel  into gMobilePathIndexLabel
+   put "p" into char 1 of gMobilePathIndexLabel 
+   if there is a graphic gMobilePathIndexLabel then delete graphic gMobilePathIndexLabel
+   UI.defineGraphicPath gMobileIndexLabel,"mobile"
+   create graphic gMobilePathIndexLabel
+   set the layer of it to bottom
+   add 1 to gNumberOfGameObjects
+   put "UI.createPathGraphic:" && gMobileIndexLabel  && "=" && gMobilePathIndexLabel &cr after gDebug
+end UI.createPathGraphic
+
+on UI.createStateLine tStateName
+   ops.setDebug ("00200 UI.createStateLine" && tStateName )
+   put "" into gErrorIndent
+   set the script of the templateGraphic to empty
+   set the style of the templateGraphic to "line"
+   set the linesize of the templateGraphic to 4
+   set the name of the templateGraphic to tStatename
+   set the visible of the templateGraphic to true
+   set the gameObjectTypeLabel of the templateGraphic to "status"
+   create graphic tStateName
+end UI.createStateLine
+
+on UI.defineBASEButton x,y,starName
+   ops.setDebug ("00201 UI.defineBASEButton" && x &&y &&starName )
+   put "" into gErrorIndent
+   set the loc of the templateButton to x,y
+   set the textSize of the templateButton to 8
+   set the showName of the templateButton to false
+   set the margins of the templateButton to 0
+   set the showBorder of the templateButton to false
+   set the autoHilite of the templateButton to false
+   set the showFocusBorder of the templateButton to false
+   set the threeD of the templateButton to false
+   set the opaque of the templateButton to false
+   set the sharedHIlite of the templateButton to false
+   set the height of the templateButton to 30
+   set the width of the templateButton to 30
+   set the borderwidth of the templateButton to 0
+   set the gameObjectTypeLabel of the templateButton to "base"
+   set the icon of the templateButton to 1080
+   create button starName 
+end UI.defineBASEButton
+
+on UI.defineGraphicPath tName,tType
+   ops.setDebug ("00202 UI.defineGraphicPath" && tName &&tType )
+   put "" into gErrorIndent
+   set the style of the templateGraphic to "polygon"
+   set the lineSize of the templateGraphic to 1
+   set the foregroundColor of the templateGraphic to blue
+   set the visible of the templateGraphic to true
+   set the points of the templateGraphic to (the orginXY of graphic tName)
+   put "p" into char 1 of tName
+   set the name of the templateGraphic to tName
+   set the gameObjectTypeLabel of the templategraphic to tType
+   set the script of the templateGraphic to empty
+end UI.defineGraphicPath
+
+on UI.defineGraphicTriangle tType
+   ops.setDebug ("00203 UI.defineGraphicTriangle" && tType )
+   put "" into gErrorIndent
+   set the style of the templateGraphic to "polygon"
+   set the points of the templategraphic to "0,0" &cr& "-8,4" &cr& "-8,-4" &cr& "0,0"
+   set the lineSize of the templateGraphic to 2
+   set the name of the templateGraphic to gMobileIndexLabel 
+   set the visible of the templateGraphic to true
+   set the opaque of the templateGraphic to false
+   set the foregroundColor of the templateGraphic to (item gParent of gColorItems)
+   set the gameObjectTypeLabel of the templateGraphic to tType
+   set the script of the templateGraphic to empty    --- >> define some scripts for the ships!!
+end UI.defineGraphicTriangle
+
+on UI.DefineRendezvousX xy
+   ops.setDebug ("00204 UI.DefineRendezvousX" && xy )
+   put "" into gErrorIndent
+   set itemDel to comma
+   put item 1 of xy into x
+   put item 2 of xy into y
+   put x-5 into x1
+   put x+5 into x2
+   put y-5 into y1
+   put y+5 into y2
+   put x1,y1 & cr & x2,y2 into L1
+   put x2,y1 & cr & x1,y2 into L2
+   put L1 & cr & cr & L2 & cr into tPoints
+   set the style of the templateGraphic to "polygon"
+   set the points of the templateGraphic to tPoints
+   set the lineSize of the templateGraphic to 2
+   set the foregroundColor of templateGraphic to white
+end UI.DefineRendezvousX
+
+on UI.EqualizeScrollBars
+   ops.setDebug ("00205 UI.EqualizeScrollBars")
+   put "" into gErrorIndent
+   put "population,production,prudence" into tItems
+   set itemDel to comma
+   lock messages
+   repeat for each item I in tItems
+      --put Base.setProperty(gGameObjectIndexLabel,I,16) into gGameObjectData
+      do "GameObject." & I && 15
+      set the thumbPosition of scrollbar I to 15
+   end repeat
+   unlock messages
+end UI.EqualizeScrollBars
+
+on UI.fixcur
+   ops.setDebug ("00206 UI.fixcur")
+   put "" into gErrorIndent
+   set the cursor to arrow
+   set the tool to "browse tool"
+   UI.TogglePathTool false
+   UI.ToggleSendTo false
+end UI.fixcur
+
+function UI.flipHorizontalPoints tpoints
+   repeat for each line L in tPoints
+      put item 1 of L *-1 & comma & item 2 of L & cr after tOutPoints
+   end repeat
+   return char 1 to -2 of tOutPoints
+end UI.flipHorizontalPoints
+
+on UI.refreshBase 
+   ops.setDebug ("00207 UI.refreshBase sends Base.refreshGUI"&& quoted(gGameObjectIndexLabel))
+   put "" into gErrorIndent
+   Base.refreshGui gGameObjectIndexLabel
+end UI.refreshBAse
+
+on UI.refreshLineSizes tLastObject,tCurrentObject,tOldSize,tNewSize
+   ops.setDebug ("00208 UI.refreshLineSizes" && tLastObject &&tCurrentObject &&tOldSize &&tNewSize )
+   put "" into gErrorIndent
+   put word 2 of tLastObject into tLast
+   put word 2 of tCurrentObject into tCur
+   if tLast is not empty and there is a graphic tLast and there is a graphic tCur then
+      if tLast is not word 2 of tCurrentObject then 
+         set the lineSize of graphic tLast to tOldSize
+         set the lineSize of graphic tCur to tNewSize 
+      end if
+   end if
+end UI.refreshLineSizes
+
+on UI.RefreshManagerThumbPositions
+   ops.setDebug ("00209 UI.RefreshManagerThumbPositions")
+   put "" into gErrorIndent
+   --this is not using the locks
+   set itemDel to comma
+   put item 1 to 3 of gBaseManagementItems into tGoals
+   put "Lock messages" & cr before ADJUST_ALL_SLIDERS_AT_ONCE
+   repeat for each item tBaseGoal in tGoals
+      put "if not bLock" & tBaseGoal &&"then" into  tIfHeader
+      put tIfHeader && "set the thumbPosition of scrollbar"&& tBaseGoal &&"to g" &tBaseGoal & cr after ADJUST_ALL_SLIDERS_AT_ONCE
+   end repeat
+   put "unlock messages" after ADJUST_ALL_SLIDERS_AT_ONCE
+   do ADJUST_ALL_SLIDERS_AT_ONCE
+end UI.RefreshManagerThumbPositions
+
+on UI.refreshScrollBarLocks 
+   ops.setDebug ("00210 UI.refreshScrollBarLocks")
+   put "" into gErrorIndent
+   put "population,production,prudence" into tItems
+   set the customPropertySet of this stack to "ScrollbarLocks"
+   do "put the b_" & gID && "of this stack into tLocks"
+   	   
+   --if tLocks is empty then put "false,false,false" into tLocks
+   repeat with i = 1 to 3
+      put item i of tLocks into tBool
+      if tBool is empty then put false into tBool
+      do "put" && tBool && "into bLock" & item i of tItems
+      set hilite of button I to tBool
+      do "set disabled of scrollbar" && quote & item i of tItems & quote &&" to tBool"
+      put tBool & comma after tBoolUpdate
+   end repeat
+   do "set the b_" & gID && "of this stack to char 1 to -2 of tBoolUpdate"
+   ops.emptyDataSet
+end UI.refreshScrollBarLocks
+
+on UI.refreshSendTo
+   ops.setDebug ("00211 UI.refreshSendTo")
+   put "" into gErrorIndent
+   if there is not a graphic gGameObjectIndexLabel or gSendTo is gGameObjectIndexLabel or gSendTo is empty or there is not a graphic gSendTo then 
+      GameObject.ClearSendToPath
+      exit UI.refreshSendTo
+   end if
+   	   
+   put the sendToDestination of graphic "SendToPath" into gRendezvousIndexLabel
+   put the sendToSource of graphic "SendTopath" into gSendToSource
+   if gSendToSource is not gGameObjectIndexLabel then
+      GameObject.ClearSendToPath
+   end if
+   	   
+   put the loc of graphic gGameObjectIndexLabel into gSendToSourcePoints
+   put the loc of graphic gSendTo into gSendToDestinationPoints
+   put Math.SubDividePolygon(gSendToSourcePoints,gSendToDestinationPoints,10) into gSendToPathPoints
+   --put gSendToSourcePoints & cr & gSendToDestinationPoints into gSendToPathPoints
+   filter lines of gSendToPathPoints without empty
+  
+   set the points of graphic "SendToPath" to gSendToPathPoints
+   set the visible of graphic "SendToPath" to true
+   --set the visible of graphic "SendToPath" to (number of lines of gSendToPathPoints = 2 and gParent = 1)
+   put gSendTo &&"@"&&xy into field "SendToLabel"
+   set the layer of graphic "SendToPath" to the layer of graphic gGameObjectIndexLabel-1
+end UI.refreshSendTo
+
+on UI.refreshStateLines 
+   ops.setDebug ("00999 UI.refreshStateLines @" && gGameIndexLabel)
+   lock screen
+   lock messages
+   put "population,production,prudence" into gBaseGoals
+   put "civilization,motivation,education" into gBaseStates
+   set itemDel to comma
+   set the layer of group "BaseUIControlsGroup" to top
+   repeat with I = 1 to 3 
+      put item I of gBaseGoals into tGoalName
+      put item I of gBaseStates into tState
+      
+      if there is not a graphic tState then UI.createStateLine tState
+      do "put g"&tState &&"into tVal"
+      do "put g"&tGoalName &&"into tGoal"
+      --ops.setDebug ("UI.refreshStateLines" &&tGoalName&&"="&& tVal)
+      --ops.setDebug (tab & tGoalName &&"="&& tGoal)
+      -- set the position and width of the state lines
+      put item 2 the loc of scrollbar tGoalName of of group "BaseUIControlsGroup" into Y
+      put item 1 the rect of scrollbar tGoalName of group "BaseUIControlsGroup" into X
+      put the left of scrollbar tGoalName of group "BaseUIControlsGroup" into tLeft
+      put x & comma & Y into tPoints
+      put cr & floor((X+(tGoal*5.54321))) & comma & Y after tPoints
+      do "set the points of graphic" && quoted(tState) && " to tPoints"
+      if tVal <> tGoal then 
+         do "set the foregroundColor of graphic" && quoted(tState)   &&"to red"
+      else
+         do "set the foregroundColor of graphic" && quoted(tState)    &&"to green"
+      end if
+      --set the layer of graphic tState of to top
+      do "set the layer of graphic" && quoted(tState)    &&"to top"
+   end repeat
+   unlock messages
+   unlock screen
+end UI.refreshStateLines
+
+on UI.selectFromListField tName
+ops.setDebug ("00213 UI.selectFromListField" && tName )
+put "" into gErrorIndent
+	   put "ListFieldSelection" & cr after gDebug
+	   --put "UI.selectFromListField" && tName
+	   put word 2 selectedLine of field tName into tLineN
+	   put line tLineN of field tName into tSelectedText
+	   switch tName
+	      case "baselist"
+	         put line tLineN of field tname into gGameObjectIndexLabel
+	         set itemDel to "_" 
+	         put item 2 of tIndexName into gID
+	         put "base" into gGameObjectTypeLabel
+	         GameObject.Data (gGameObjectTypeLabel,gGameObjectIndexLabel)
+	         put GameObject.getProperties("parent") into gPlayerNumber
+	         if gPlayerNumber > 0 then put Base.UpdateSliders() into gGameObjectData
+	         break
+   end switch
+end UI.selectFromListField
+
+on UI.selectprowler tProwlerIndex
+ops.setDebug ("00215 UI.selectprowler" && tProwlerIndex )
+put "" into gErrorIndent
+	   set the customPropertySet of this stack to "BaseData"
+	   do "put the m_"& tProwlerIndex && "of this stack into tProwlerArray"
+	   put tProwlerArray[tProwlerIndex] into gMobileData
+	   --put gMobileData into field "mobproperties"
+	   ops.emptyDataSet
+end UI.selectprowler
+
+on UI.StatusLabel gStatusText
+---- ops.setDebug ("00216 UI.StatusLabel" && gStatusText ) !! RECURSION
+put "" into gErrorIndent
+	   if there is a field "StatusLabel" then put gStatusText into field "StatusLabel"
+end UI.StatusLabel
+
+on UI.toggleConsole tToggleConsoleBool
+ops.setDebug ("00217 UI.toggleConsole" && tToggleConsoleBool )
+put "" into gErrorIndent
+	   if tToggleConsoleBool is  empty then
+	      put (not bToggleConsoleBool) into bToggleConsoleBool
+	   else
+	      put tToggleConsoleBool into bToggleConsoleBool
+   end if
+	   lock screen
+	   if bToggleConsoleBool then
+	      UI.consoleWrite 
+	      set the visible of field "Console" to bToggleConsoleBool
+	      set the scrollBarwidth of field "Console" to 8
+	      set the layer of field "Console" to top
+   end if
+	   unlock screen
+end UI.toggleConsole
+
+on UI.TogglePathTool tBool
+ops.setDebug ("00218 UI.TogglePathTool" && tBool )
+put "" into gErrorIndent
+	   put not bPathToolBool into bPathToolBool
+	   if tBool is not empty then put tBool into bPathToolBool
+	   if word 1 of gSelectedObject is not "mobile" and gParent <> 1 then put false into tPathToolBool
+	   
+	   --set the hilite of button "Path" to bPathToolBool
+	   if bPathToolBool is true then 
+	      set the defaultCursor to 1580 -- one tiny dot
+	   else
+	      set the defaultCursor to empty
+   end if
+end UI.TogglePathTool
+
+on UI.ToggleRendezvousToolBool 
+ops.setDebug ("00219 UI.ToggleRendezvousToolBool")
+put "" into gErrorIndent
+	   if gGameTool is "rendezvous" then 
+	      put empty into gGameTool 
+	      set the defaultCursor to empty
+	      UI.ToggleSendTo False
+	      set the loc of image "rendezvousx" to 0,0
+	   else
+	      put "rendezvous" into gGameTool
+	      set the loc of image "rendezvousx" to the mouseloc
+	      --set the defaultCursor to arrow
+	      UI.ToggleSendTo True
+   end if
+end UI.ToggleRendezvousToolBool
+
+on UI.ToggleScriptBlocks
+ops.setDebug ("00220 UI.ToggleScriptBlocks")
+put "" into gErrorIndent
+	   set the visible of group "scriptBlocks" to (not the visible of group "scriptBlocks")
+	   if visible of group "scriptBlocks" then send OrganizeScriptBlocks to button "Utility"
+end UI.ToggleScriptBlocks
+
+on UI.ToggleScrollbarLock tName , tBool
+ops.setDebug ("00221 UI.ToggleScrollbarLock" && tName  && tBool )
+put "" into gErrorIndent
+	   if gParent is not 1 then exit UI.ToggleScrollbarLock
+	   put "put" && tBool &&"into bLock"&tName into tCom
+	   do tCom
+	   set the hilite of button tName to tBool
+	   set the disabled of scrollBar tName to tBool
+	   put "population,production,prudence" into tItems
+	   repeat for each item I in tItems
+	      put hilite of button i & comma after tLocks
+   end repeat
+	   set the customPropertySet of this stack to "ScrollbarLocks"
+	   do "set the b_" & gID && "of this stack to"&& char 1 to -2 of tLocks
+	   ops.emptyDataSet
+end UI.ToggleScrollbarLock
+
+on UI.ToggleSendTo tBool
+ops.setDebug ("00222 UI.ToggleSendTo" && tBool )
+put "" into gErrorIndent
+	   
+	   put not bSendToBool into bSendToBool
+	   if tBool is not empty then put tBool into bSendToBool
+	   
+	   
+	   set the hilite of button "SendTo" to bSendToBool
+	   if bSendToBool is true then 
+	      set the defaultCursor to 1580 -- one tiny dot
+	   else
+	      set the defaultCursor to empty
+   end if
+end UI.ToggleSendTo
+
+on UI.toggleSendToPathVisible tBool
+ops.setDebug ("00223 UI.toggleSendToPathVisible" && tBool )
+put "" into gErrorIndent
+	   put not gDrawPathBool into gDrawStarPathBool
+	   if tBool is not empty then put tBool into gDrawStarPathBool
+	   if there is not a graphic "SendToPath" then Init.SendToPath
+	   set the visible of graphic "SendToPath" to (gGameTool is "base" and gParent = 1)
+	   set the hilite of button "drawPath" to gDrawStarPathBool
+end UI.toggleSendToPathVisible
+
+on UI.ToolPick tTool
+ops.setDebug ("00224 UI.ToolPick" && tTool )
+put "" into gErrorIndent
+	   put tTool into gGameTool
+	   
+	   set the visible of group "MobileUIControlsGroup" to (tTool is "mobile" or tTool is "path")
+	   set the visible of graphic "SendToPath" to (gGameTool is "base" and gParent = 1)
+	   set the visible of group "BaseUIControlsGroup" to (tTool is "base")
+	   set the visible of graphic "civilization" to (tTool is "base")
+	   set the visible of graphic "motivation" to (tTool is "base")
+	   set the visible of graphic "education" to (tTool is "base")
+	   set the visible of image "select" to (tTool is "base" and  gGameObjectIndexLabel is not empty)
+end UI.ToolPick
+
+on UI.ZoomedMap
+ops.setDebug ("00225 UI.ZoomedMap")
+put "" into gErrorIndent
+	   lock screen
+	   set the customPropertySet of this stack to "BaseData"
+	   put the customKeys of this stack into gBaseList
+	   ops.emptyDataSet
+	   put the currentSelection of this stack into gSelectedObject
+	   -- change center object later for zooming around to each selection
+	   if there is not a graphic "centerxy" then UI.createCenterXYgraphic
+	   put "centerxy" into gCenterObject
+	   
+	   if gSelectedObject is not empty  then  put word 2 of  gSelectedObject into gCenterObject
+	   
+	   -- get the center of the map
+	   put gMapX into tMapX
+	   put gMapY into tMapY
+	   -- get the scroll offset of the map
+	   add gScrollOffsetX to tMapX
+	   add gScrollOffsetY to tMapY
+	   	 	   
+	   GameObject.MobileList
+	   list.rendezvous
+	   
+	   put Mobile.list() & cr & gBaseList & cr &gRendezvousList into tZoomList
+	  -- put gBaseList into tZoomList
+	   filter lines of tZoomList without empty
+	   repeat for each line tGraphicName in tZoomList
+	      set itemDel to comma
+	      -- Calculate the new position based on the zoom level
+	      if there is a graphic tGraphicName of this stack then 
+	         put the originXY of graphic tGraphicName of this stack into tLoc
+	         put ((item 1 of tLoc - tMapX) * gZoomLevel) + tMapX into tNewLocX
+	         put ((item 2 of tLoc - tMapY) * gZoomLevel) + tMapY into tNewLocY
+	         -- Set the new location
+	         set the loc of graphic tGraphicName of this stack to tNewLocX,tNewLocY
+	         -- set visibility within the map group
+	         put loc of graphic tGraphicName of this stack is within the rect of group "map" of this stack into tVis
+	         set the visible of graphic tGraphicName of this stack to tVis
+	         if tGraphicName is not word 2 of gSelectedObject and lineSize of graphic tGraphicName >1 then set the lineSize of graphic tGraphicName to 1
+      end if
+   end repeat
+	   
+	   
+	   if gzoomLevel <0.26 or gCenterObject is empty then put loc of group "Map" into tRootLoc
+	   put the loc of group "Map" into tRootLoc
+	   if  there is a graphic gCenterObject then  put the loc of graphic gCenterObject into tRootLoc
+	   -- center everything on the selection
+	
+	   put setOffsetXY(item 1 of tRootloc,item 2 of tRootLoc,tMapX,tMapY) into gOffsetXY
+	   
+	   
+	   put word 1 of gSelectedObject into gGameObjectTypeLabel
+	   put char 1 of gGameObjectTypeLabel into gGameObjectTypePrefix
+	   put char 3 to -1 of word 2 of gSelectedObject into gID
+	   put word 2 of gSelectedObject into gGameObjectIndexLabel
+	   --
+	   
+	   
+	   if  gGameObjectIndexLabel is not empty then
+	      -- for some reason the rendezvous need to be adjusted outside of the original base map
+	      -- else the rendezvous gets thrown into a strange location
+	      -- which only occurs if setOffsetXY() is used to center the map on the selected object
+	      fixWanderingRendezvous
+	      UI.refreshSendTo
+	      set the visible of graphic "SendToPath" to (gSendTo is not 0 and gSendTo is not empty and gParent = 1)
+   end if
+	   put gZoomLevel into field "zoomlevel"
+	   GameObject.selectionCircle
+	   unlock screen
+end UI.ZoomedMap
+

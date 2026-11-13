@@ -1,0 +1,15 @@
+-- generic button script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): button "debug" (id 60467)
+-- handlers: mouseUp
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+global bshowConsole
+on mouseUp tbtn
+   put (not bshowConsole) into bshowConsole
+   if tbtn is 3 then 
+      clearDebug
+      send ops.cleardebug to this stack in 300 milliseconds
+      end if
+   if bshowconsole then send UI.toggleConsole && bshowConsole to this stack in 30 milliseconds
+end mouseUp

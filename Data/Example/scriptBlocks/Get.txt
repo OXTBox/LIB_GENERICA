@@ -1,0 +1,214 @@
+-- script block: Get (handlers whose names start with "Get"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026, GenericaProperties_03182026a
+-- handlers: 13
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on getArray tObjectName
+   ops.setDebug ("00095 getArray" && tObjectName )
+   put "" into gErrorIndent
+   put char 1 of tObjectName into tFirstChar
+   put "base,mobile,rendezvous,path" into tItems
+   put item itemOffset(tFirstChar,tItems) of tItems into tType
+   usePropertySet (tType & "Data")
+   put "put the"&& tObjectName && "of this stack into" && "g" & tProp & "DataArray" into tCom
+   return DataArray
+end getArray
+
+on getSelected
+   ops.setDebug ("00096 getSelected")
+   put "" into gErrorIndent
+   put the currentSelection of this stack & cr & the previousSelection of this stack into field "statusLabel"
+end getSelected
+
+function getBaseData tID,tPrefix
+ops.setDebug ("00262 getBaseData")
+put "" into gErrorIndent
+	   set the customPropertySet of this stack to "BaseData"
+	   do "put the" &&tPrefix & tID && "of this stack into gGameObjectData"
+	   ops.emptyDataSet
+	   return gGameObjectData
+end getBaseData
+
+function getBaseMapCenterXY
+ops.setDebug ("00263 getBaseMapCenterXY")
+put "" into gErrorIndent
+	   -- used if zooming only from the center of the generated objects
+	   set the customPropertySet of this stack to "BaseData"
+	   put the customKeys of this stack into gBaseList
+	   ops.emptydataset
+	   filter gBaseList with "b_*"
+	   divide gBaseMapCenterX by the number of lines of gBaseList
+	   divide gBaseMapCenterY by the number of lines of gBaseList
+	   put "gBaseMapCenterXY ="&& gBaseMapCenterX & comma & gBaseMapCenterY & cr after gDebug
+	   return gBaseMapCenterX,gBaseMapCenterY
+end getBaseMapCenterXY
+
+function getCommands tFilter
+ops.setDebug ("00264 getCommands")
+put "" into gErrorIndent
+	   put the script of this stack into tScript
+	   ops.setDebug "zzCollectScript" && (short name of the target)
+	   
+	   put tScript into gStackHandlers
+	   put tScript into gStackFunctions
+	   if tFilter is empty then
+	      filter lines of gStackHandlers with ("on"&numtochar(32)&"*")
+	      filter lines of gStackFunctions with (cr&"function"&numtochar(32)&"*")
+	   else
+	      filter lines of gStackHandlers with (cr&"on"&numtochar(32)&tFilter&"*")
+	      filter lines of gStackFunctions with (cr&"function"&numtochar(32)&tFilter&"*")
+   end if
+	   replace cr with "()"& cr in gStackFunctions
+	   put gStackHandlers & cr & gStackFunctions into gStackCommands
+	   replace "function"& space with empty in gStackCommands
+	   replace "on" & space with empty in gStackCommands
+	   
+	   sort gStackCommands
+	   return gStackCommands
+end getCommands
+
+function getDefaultBase
+ops.setDebug ("00265 getDefaultBase")
+put "" into gErrorIndent
+	   set the customPropertySet of this stack to "BaseData"
+	   put the customKeys of this stack into gBaseList
+	   put gBaseList into tBaseKeys
+	   filter lines of tBaseKeys with "b_*"
+	   replace "b_" with empty in tBaseKeys
+	   sort tBaseKeys numeric ascending
+	   put line 1 of tBaseKeys into gDefaultBase
+	   do "put the b_" & gDefaultBase && "of this stack into tArray"
+	   put tArray["base"] into gGameObjectData
+	   ops.emptyDataSet
+	   return gGameObjectData
+end getDefaultBase
+
+function getFunctionFromStack tFunctionName
+ops.setDebug ("00266 getFunctionFromStack")
+put "" into gErrorIndent
+	   return getHandlerFromStack(tFunctionName)
+end getFunctionFromStack
+
+function getHandlerFromStack tHandlerName
+ops.setDebug ("00267 getHandlerFromStack")
+put "" into gErrorIndent
+	   put the script of this stack into tScript
+	   put lineOffset("on"&&tHandlerName,tScript) into tStart
+	   put lineOffset("end"&& tHandlerName,tScript) into tEnd
+	   put line tStart to tEnd of tScript into tHandlerChunk
+	   repeat for each line L in tHandlerChunk
+	      if word 1 of L is not "on" and word 1 of L is not "end" then
+	         put tab & L & cr after tChunk
+	      else
+	         put L & cr after tChunk
+      end if
+	      put tChunk into tHandlerChunk
+   end repeat
+	   return tHandlerChunk
+end getHandlerFromStack
+
+function getMobilePathsData
+   ops.setDebug ("00268 getMobilePathsData")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to "PathData"
+   put the customKeys of this stack into gMobilePathData
+   ops.emptyDataSet
+   filter gMobilePathData without empty
+   sort lines of gMobilePathData numeric ascending
+   return gMobilePathData
+end getMobilePathsData
+
+--- because objects become the center object 'map' is not always center
+function GetRelativeLoc pScreenLoc, pZoomLevel
+   ops.setDebug ("00269 GetRelativeLoc  pScreenLoc, pZoomLevel" &&  quoted(pScreenLoc), pZoomLevel)
+   put "" into gErrorIndent
+   if pZoomLevel is empty or pZoomLevel is 0 then put gZoomLevel into pZoomLevel
+   -- Get the center of the map
+   --   if gCenterObject is not empty and gCenterObject is not "map" then 
+   --      put the originXY of graphic gCenterObject into tMapCenter
+   --   else
+   --      put loc of group "map" into tMapCenter
+   --   end if
+   put loc of group "map" into tMapCenter
+   put item 1 of tMapCenter into tMapX
+   put item 2 of tMapCenter into tMapY
+   -- Calculate the relative location
+   put item 1 of pScreenLoc into tScreenX
+   put item 2 of pScreenLoc into tScreenY
+   --put tScreenX & cr & tScreenY
+   put ((tScreenX-tMapX) / pZoomLevel )  into tRelativeX
+   put ((tScreenY-tMapY) / pZoomLevel ) into tRelativeY
+   ops.setDebug ("GetRelativeLoc( "&&pScreenLoc &&","&pZoomLevel&") ="&& tRelativeLoc )
+   return tRelativeX & "," & tRelativeY
+end GetRelativeLoc
+
+function GetRelativeLocFromObjects tObject1, tXY, tZoomLevel
+ops.setDebug ("00270 GetRelativeLocFromObjects")
+put "" into gErrorIndent
+	   put item 1 of loc of graphic tObject1 into tSourceX
+	   put item 2 of loc of graphic tObject1 into tSourceY
+	   put item 1 tXY into tDestX
+	   put item 2 tXY into tDestY
+	   -- Calculate the relative location
+	   put the loc of group "map" into pScreenLoc
+	   put item 1 of pScreenLoc into tScreenX
+	   put item 2 of pScreenLoc into tScreenY
+	   --put tScreenX & cr & tScreenY
+	   put ((tDestX-tSourceX) / tZoomLevel )  into tRelativeX
+	   put ((tDestY-tSourceY) / tZoomLevel ) into tRelativeY
+	   ops.setDebug ("GetRelativeLocFromObjects" && tSourceX,tSourceY && tDestX,tDestY&comma&tZoomLevel &&"="&&tRelativeX & "," & tRelativeY)
+	   return tRelativeX & "," & tRelativeY
+end GetRelativeLocFromObjects
+
+function GetRelativeLocFromPoints tSourceXY, tDestInationXY, tZoomLevel
+ops.setDebug ("00271 GetRelativeLocFromPoints")
+put "" into gErrorIndent
+	   put item 1 of tSourceXY into tSourceX
+	   put item 2 of tSourceXY into tSourceY
+	   put item 1 tDestInationXY into tDestX
+	   put item 2 tDestInationXY into tDestY
+	   -- Calculate the relative location
+	   ---put the loc of group "map" into pScreenLoc
+	   --put item 1 of pScreenLoc into tScreenX
+	   --put item 2 of pScreenLoc into tScreenY
+	   --put tScreenX & cr & tScreenY
+	   put ((tDestX-tSourceX) / tZoomLevel )  into tRelativeX
+	   put ((tDestY-tSourceY) / tZoomLevel ) into tRelativeY
+	   ops.setDebug ("GetRelativeLocFromPoints" && tSourceX,tSourceY && tDestX,tDestY&comma&tZoomLevel &&"="&&tRelativeX & "," & tRelativeY)
+	   return tRelativeX & "," & tRelativeY
+end GetRelativeLocFromPoints
+
+------------------------------------------------------------ from GenericaProperties_03182026a
+
+on getAllCurrentGlobalValues
+   filter tScript with "global "&"*"
+   replace  "global" with empty in tScript
+   put "" into gGlobalList
+   repeat with i = 97 to 122
+      put filterStackScriptForGlobals(numtochar(i)) & cr after  gGlobalList
+   end repeat
+   filter lines of gGlobalList without empty
+   set the customPropertySet of this card to empty
+   put the global_prefix_ignore_list of this card into gGlobalPrefixIgnoreList
+   if gGlobalPrefixIgnoreList is not empty then
+      repeat for each line tIgnore in gGlobalPrefixIgnoreList
+         filter lines of gGlobalList without tIgnore& "*"
+      end repeat
+   end if
+   
+   sort gGlobalList
+   repeat for each line L in gGlobalList
+      do "put" && L &&"into tVar"
+      try
+         do "put L &&" && quoted(tVar)  &&"&& cr after tAllCurrentGlobalValues"
+      catch err
+         put err & cr after tAllCurrentGlobalValues
+      finally
+         do "put L &&" && tVar  &&"& cr after tAllCurrentGlobalValues"
+      end try
+   end repeat
+   put tAllCurrentGlobalValues
+end getAllCurrentGlobalValues
+

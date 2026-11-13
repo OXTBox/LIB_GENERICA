@@ -1,0 +1,17 @@
+-- generic button script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): button "Button" (id 1028)
+-- handlers: mouseUp
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+global bClicked
+on mouseUp
+put not bClicked into bClicked
+set the outerGlow of me to bClicked
+set the showName of me to  not bClicked
+if bClicked then 
+set the outerGlow["size"] of me to 10
+set the outerGlow["spread"] of me to 160
+set the outerGlow["color"] of me to white
+end if
+end mouseUp

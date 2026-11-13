@@ -1,0 +1,1115 @@
+-- script block: GameObject (handlers whose names start with "GameObject"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 74
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on GameObject.assembly tAssembly
+   ops.setDebug ("00034 GameObject.assembly" && tAssembly )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tassembly into gassembly
+   GameObject.SetDataToPropertyGlobals
+end GameObject.assembly
+
+on GameObject.build tBuild
+   ops.setDebug ("00035 GameObject.build" && tBuild )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tbuild into gbuild
+   GameObject.SetDataToPropertyGlobals
+end GameObject.build
+
+on GameObject.civilization tCivilization
+   ops.setDebug ("00036 GameObject.civilization" && tCivilization )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tcivilization into gcivilization
+   GameObject.SetDataToPropertyGlobals
+end GameObject.civilization
+
+on GameObject.clearIndex gID,tType
+   ops.setDebug ("00037 GameObject.clearIndex" && gID &&tType )
+   put "" into gErrorIndent
+   put tType&"Data" into gGameObjectTypeData
+   do "set the customPropertySet of this stack to" && gGameObjectTypeData
+   put the customKeys of this stack into gGameObjectDataKeys
+   filter gGameObjectDataKeys without gGameObjectIndexLabel
+   set the customKeys this stack to gGameObjectDataKeys
+   do "set the" && gMobilePathIndexLabel &&"of this stack to empty"
+   subtract 1 from gNumberOfGameObjects
+   ops.emptyDataSet
+end GameObject.clearIndex
+
+on GameObject.ClearSendToPath
+   ops.setDebug ("00038 GameObject.ClearSendToPath")
+   put "" into gErrorIndent
+   set the points of graphic "SendToPath" to empty
+   set the sendToDestination of graphic "SendToPath" to empty
+   set the sendToSource of graphic "SendToPath" to empty
+   put the points of graphic "SendToPath" into gSendToPathPoints
+end GameObject.ClearSendToPath
+
+on GameObject.create tType,x,y
+   ops.setDebug ("00039 GameObject.create" && tType &&x &&y )
+   put "" into gErrorIndent
+   -- BASE ID AND NAME 
+   add 1 to gGameObjectsCount
+   put string.PadNumber(gGameObjectsCount,4) into gID -- padded for sorting
+   put "g"&tType&"Index" into gIndex
+   do "put"&& char 1 of tType &"_"&gID &&"into"&& gIndex 
+   put gZeroedGameObjectData into gGameObjectData -- fall back to zeroed index to have a place to put things
+   usePropertySet (tType&"Data") --set the customPropertySet of this stack to "BaseData"
+   put gID into item 1 of gGameObjectData
+   do "set the"&& gIndex && "of this stack to gGameObjectData" -- create the custom property
+   -- set default properties elsewhere?
+   -- for now pass the current globals 
+   GameObject.setDataToPropertyGlobals
+   --create a graphic to represent the base in 2D space
+   --createGameGraphicObject x,y,(gIndex)
+   --do "set the" && tType && "of graphic (tPrefix&gID) to gGameObjectData"
+   ops.emptyDataSet
+end GameObject.create
+
+on GameObject.createBase gID,gX,gY,gGameObjectTypeLabel
+   ops.setDebug ("00040 GameObject.createBase" && gID &&gX &&gY &&gGameObjectTypeLabel )
+   put "" into gErrorIndent
+   put "GameObject.createBase" && gID,gX,gY,gGameObjectTypeLabel & cr after gDebug
+   GameObject.defineBaseData gID,gX,gY,gGameObjectTypeLabel
+   put random(1024)*random(1024) into gLife -- 
+   GameObject.setDataToPropertyGlobals
+   set the customPropertyset of this stack to "BaseData"
+   do "SET the"&& gGameObjectIndexLabel && "of this stack to gGameObjectData" 
+   ops.emptydataset
+   --create a graphic to represent the base in 2D space
+   UI.createBaseGraphic gx,gy,gGameObjectIndexLabel
+   set the base of graphic gGameObjectIndexLabel to gGameObjectData
+end GameObject.createBase
+
+on GameObject.createRendezvous tGameObjectIndexLabel, bVis
+   ops.setDebug ("00041 GameObject.createRendezvous" && tGameObjectIndexLabel && bVis )
+   put "" into gErrorIndent
+   if tGameObjectIndexLabel is not empty then put tGameObjectIndexLabel into gGameObjectindexLabel
+   put string.PadNumber(gNumberOfGameObjects+1,3) into rendezvousID
+   put the mouseLoc into mouseXY
+   set the loc of the templateGraphic to mouseXY
+   --- we want to get the correct offset from the source
+   put the originXY of graphic gGameObjectIndexLabel into tSourceXY
+   	   
+   UI.defineRendezvousX mouseXY  --- << -- defines templateGraphic for the X object 
+   	   
+   --- get the location relative to the origin base * zoom level
+   put GetRelativeLocFromObjects(gGameObjectIndexLabel,mouseXY,gZoomLevel) into tRelativeLoc
+   	   
+   --put GetRelativeLoc(mousexy,gZoomLevel) into tRelativeLoc
+   --- set the origin of the object
+   	   
+   add  item 1 of tRelativeLoc  to item 1 of tSourceXY
+   add item 2 of tRelativeLoc  to  item 2 of tSourceXY
+   	   
+   set the originXY of the templateGraphic to tSourceXY
+   put "r_"&rendezvousID into gRendezvousIndexLabel
+   set the gameObjectTypeLabel of the templateGraphic to "rendezvous"
+   set the name of the templateGraphic to gRendezvousIndexLabel
+   set the visible of the templateGraphic to true
+   --- draggable rendezvous 02-11-2024
+   init.RendezvousScript
+   set the script of the templateGraphic to  RENDEZVOUS_OBJECT_SCRIPT
+   
+   create graphic gRendezvousIndexLabel
+   set the script of the templateGraphic to  empty
+   	   
+   set the originBase of graphic gRendezvousIndexLabel to gGameObjectIndexLabel
+   set the offsetX of graphic gRendezvousIndexLabel to item 1 of tRelativeLoc
+   set the offsetY of graphic gRendezvousIndexLabel to item 2 of tRelativeLoc
+   -- set the sendTo of the current base to  the new rendezvous
+   GameObject.SendTo gRendezvousIndexLabel
+   -- create a path between the rendezvous and the base -- maybe leave the path out here
+   GameObject.SendToPath gGameObjectIndexLabel, gRendezvousIndexLabel, (loc of group "map")
+   	   
+   -- move game data of the source object into the rendezvous and then localize 
+   put gGameObjectData into gRendezvousData
+   put rendezvousID into item 1 of gRendezvousData
+   put item 1 of tSourceXY into item xItem of gRendezvousData
+   put item 2 of tSourceXY into item yItem of gRendezvousData
+   put itemOffset("rendezvous",gGameObjectTypes) into item typeItem of gRendezvousData
+   	   
+   set the customPropertySet of this stack to "RendezvousData"
+   do "set the" && gRendezvousIndexLabel &&"of this stack to gRendezvousData" 
+   ops.emptyDataSet
+   add 1 to gNumberOfGameObjects
+end GameObject.createRendezvous
+
+on GameObject.currentSelectionIsEmpty gErrorSourceLabel
+   ops.setDebug ("00042 GameObject.CurrentSelection" && tSelectedObject )
+   put "" into gErrorIndent
+   -- are these scripts too small for the collector?
+end GameObject.currentSelectionIsEmpty
+
+on GameObject.Data gGameObjectTypeLabel, gGameObjectIndexLabel
+   ops.setDebug ("00044 GameObject.Data" && gGameObjectTypeLabel && gGameObjectIndexLabel )
+   put "" into gErrorIndent
+   set itemDel to comma
+   if number of items of gGameObjectTypeLabel >1 then 
+      put item 2 of gGameObjectTypeLabel into gGameObjectIndexLabel
+      put item 1 of gGameObjectTypeLabel into gGameObjectTypeLabel
+   end if
+   put GameObject.getData( gGameObjectTypeLabel , gGameObjectIndexLabel) into gGameObjectData 
+   GameObject.setPropertyValuesFromData
+   ops.emptydataset
+end GameObject.Data
+
+on GameObject.DataToBaseDataSet
+   ops.setDebug ("00045 GameObject.DataToBaseDataSet")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to "BaseData"
+   do "set the "&& gGameObjectIndexLabel &&" of this stack to gGameObjectData"
+   ops.emptydataset
+end GameObject.DataToBaseDataSet
+
+on GameObject.DataToPlayerDataSet gParent
+   ops.setDebug ("00046 GameObject.DataToPlayerDataSet" && gParent )
+   put "" into gErrorIndent
+   put "Player"&gParent into gPlayerName
+   set the customPropertySet of this stack to "PlayerData"
+   do "put the" && gPlayerName && "of this stack into gPlayersArray"
+   put gPlayersArray["base"] into  gPlayersBaseArray
+   put gGameObjectData into gPlayersBaseArray[gGameObjectIndexLabel]
+   put gPlayersBaseArray into gPlayersArray["base"]
+   do  "set" && gPlayerName && "of this stack to gPlayersArray"
+   ops.emptydataset
+end GameObject.DataToPlayerDataSet
+
+on GameObject.defineBaseData gID,gX,gY,gGameObjectTypeLabel
+   ops.setDebug ("00047 GameObject.defineBaseData" && gID &&gX &&gY &&gGameObjectTypeLabel )
+   put "" into gErrorIndent
+   if gID is empty or gID< 1 or gID is not a number then put gNumberOfGameOBjects+1 into gID
+   put char 1 of gGameObjectTypeLabel into gGameObjectTypePrefix
+   put gGameObjectTypeLabel &"Data" into gGameObjectTypeData
+   do "SET the customPropertySet of this stack to" && gGameObjectTypeLabel&"Data"
+   if number of characters of gID < 3 then put string.PadNumber(n,3) into gID -- padded for sorting
+   put gGameObjectTypePrefix & "_"&gID into gGameObjectIndexLabel   -- padded with string for custom property 
+   put gGameObjectTypeLabel && gGameObjectIndexLabel into gSelectedObject
+   	   
+   	   
+   do "SET the customPropertySet of this stack to" && gGameObjectTypeLabel&"Data"
+   put "put the"&& gGameObjectIndexLabel && "of this stack into gGameObjectData" into GET_GAME_OBJECT_DATA
+   do GET_GAME_OBJECT_DATA
+   ops.emptyDataSet
+   SET the currentSelection of this stack to gSelectedObject
+   ops.traceCPropset "GameObject.defineBaseData" 
+end GameObject.defineBaseData
+
+on GameObject.education tEducation
+   ops.setDebug ("00048 GameObject.education" && tEducation )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put teducation into geducation
+   GameObject.SetDataToPropertyGlobals
+end GameObject.education
+
+on GameObject.emptySelection
+   ops.setDebug ("00049 GameObject.emptySelection")
+   put "" into gErrorIndent
+   GameObject.select.empty
+end GameObject.emptySelection
+
+function GameObject.getBaseScriptText
+   ops.setDebug ("00050 GameObject.getBaseScript")
+   put "" into gErrorIndent
+   setDebug ("GameObject.getBaseScriptText" &tab& "gBaseScriptText :" & cr & gBaseScriptText)
+   return gBaseScriptText
+end GameObject.getBaseScriptText
+
+on GameObject.getGlobals
+   ops.setDebug ("00051 GameObject.getGlobals")
+   put "" into gErrorIndent
+   if  the currentSelection of this stack is empty then
+      GameObject.currentSelectionIsEmpty "GameObject.getGlobals"
+      exit GameObject.getGlobals
+   end if
+   GameObject.SelectedObject
+   GameObject.Data gGameObjectTypeLabel,gGameObjectIndexLabel
+end GameObject.getGlobals
+
+on GameObject.getIndexLabel
+   ops.setDebug ("00052 GameObject.getIndexLabel")
+   put "" into gErrorIndent
+   GameObject.SelectedObject
+end GameObject.getIndexLabel
+
+on gameObject.getPlayerBaseList gPlayerNumber
+   ops.setDebug ("00053 gameObject.getPlayerBaseList" && gPlayerNumber )
+   put "" into gErrorIndent
+   put Base.ListPlayerBases(gPlayerNumber) into gPlayerBaseList
+end gameObject.getPlayerBaseList
+
+on GameObject.getPropertyValuesFromData
+   ops.setDebug ("00054 GameObject.getPropertyValuesFromData")
+   put "" into gErrorIndent
+   GameObject.setPropertyValuesFromData
+end GameObject.getPropertyValuesFromData
+
+on GameObject.getTypeLabel
+   ops.setDebug ("00056 GameObject.getTypeLabel")
+   put "" into gErrorIndent
+   GameObject.SelectedObject
+end GameObject.getTypeLabel
+
+on GameObject.getTypePrefix
+   ops.setDebug ("00057 GameObject.getTypePrefix")
+   put "" into gErrorIndent
+   GameObject.SelectedObject
+end GameObject.getTypePrefix
+
+on GameObject.gID
+   ops.setDebug ("00058 GameObject.gID")
+   put "" into gErrorIndent
+   ops.setDebug("GameObject.gID" && the long time)
+   GameObject.getIndexLabel
+end GameObject.gID
+
+on GameObject.GlobalsView
+   ops.setDebug ("00059 GameObject.GlobalsView")
+   put "" into gErrorIndent
+   put "" into gGameObjectStatus
+   put "ID:" && gGameObjectIndexLabel & cr after gGameObjectStatus
+   put "Index Label:" && gGameObjectIndexLabel & cr after gGameObjectStatus
+   
+   put "Type Prefix:" && gGameObjectTypePrefix & cr after gGameObjectStatus
+   put "Type enum:" && gType & cr after gGameObjectStatus
+   put "Type Label:" && gGameObjectTypeLabel & cr after gGameObjectStatus
+   
+   put "Data Set:" && gGameObjectTypeData & cr after gGameObjectStatus
+   put  list.gameObjectCurrentGlobalValues() & cr after gGameObjectStatus
+   --- moved the field setting to the Base.RefreshGUI 02-09-2024
+   -- put gGameObjectStatus into field "GameObjectPropertiesField"
+end GameObject.GlobalsView
+
+on GameObject.ID tID
+   ops.setDebug ("00060 GameObject.ID" && tID )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tID into gID
+   GameObject.SetDataToPropertyGlobals
+end GameObject.ID
+
+on GameObject.IncrementLevel    gGameObjectTypeLabel, gGameObjectIndexLabel
+   ops.setDebug ("00061 GameObject.IncrementLevel" && gGameObjectTypeLabel && gGameObjectIndexLabel )
+   put "" into gErrorIndent
+   GameObject.SelectedObject
+   	
+   put ( gEducation) *0.0055  into gLevelUp
+   if gLevelUp < 0.025 then put 0.025 into gLevelUp
+   if gLevel < 1 or gLevel is empty then put 1 into gLevel
+   put gLevel+gLevelUp into tLevel
+   put tLevel into gLevel
+   GameObject.level gLevel
+end GameObject.IncrementLevel
+
+on GameObject.initBaseObjectScript
+   ops.setDebug ("00062 GameObject.initBaseObjectScript")
+   put "" into gErrorIndent
+   GameObject.initBaseScriptText -- get the init  script here!
+   GameObject.setBaseScriptGlobal gBaseScriptText -- set the script here
+   set the script of graphic gGameObjectIndexLabel to gBaseScriptText -- set the init  script here!
+end GameObject.initBaseObjectScript
+
+on GameObject.initBaseScriptText targ
+   ops.setDebug ("00063 GameObject.initBaseScriptText" && targ )
+   put "" into gErrorIndent
+   put getHandlerFromStack("BASE"&"_mouseDown") into gBaseScriptText
+   put cr & getHandlerFromStack("BASE"&"_mouseUp") & cr  after gBaseScriptText
+   put cr & getHandlerFromStack("BASE"&"_fadeFocus") & cr  after gBaseScriptText
+   put cr & getHandlerFromStack("BASE"&"_gainFocus") & cr  after gBaseScriptText
+   replace "BASE_" with empty in gBaseScriptText
+   if targ is not empty then 
+      --    clearDebug
+      --   send debug to this stack in 30 milliseconds
+   end if
+end GameObject.initBaseScriptText
+
+on GameObject.level tLevel
+   ops.setDebug ("00064 GameObject.level" && tLevel )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tlevel into glevel
+   GameObject.SetDataToPropertyGlobals
+end GameObject.level
+
+on GameObject.life tLife
+   ops.setDebug ("00065 GameObject.life" && tLife )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tlife into glife
+   GameObject.SetDataToPropertyGlobals
+end GameObject.life
+
+on GameObject.limitDataToProperties
+   ops.setDebug ("00066 GameObject.limitDataToProperties")
+   put "" into gErrorIndent
+   set itemDel to comma
+   put item 1 to (number of items of gGameObjectProperties) of gGameObjectData into gGameObjectData
+end GameObject.limitDataToProperties
+
+on GameObject.ListType gGameObjectTypeLabel
+   ops.setDebug ("00067 GameObject.ListType" && gGameObjectTypeLabel )
+   put "" into gErrorIndent
+   put "put" &&quote& gGameObjectTypeLabel &"Data" &quote && "into gGameObjectTypeData" & cr into GAME_OBJECT_LIST_TYPE
+   put "put" && quote& "g" & gGameObjectTypeLabel &"List" &quote && "into gGameObjectTypeList"  & cr after GAME_OBJECT_LIST_TYPE
+   put "set the customPropertySet of this stack to" &&  gGameObjectTypeLabel &"Data"  & cr after GAME_OBJECT_LIST_TYPE
+   put "put the customKeys of this stack into" && gGameObjectTypeList  & cr after GAME_OBJECT_LIST_TYPE
+   put "put gGameObjectTypeList into g" & gGameObjectTypeLabel  &"List" & cr after GAME_OBJECT_LIST_TYPE
+   put "sort lines of" &&gGameObjectTypeLabel &"list" & cr after GAME_OBJECT_LIST_TYPE
+   put "filter Lines of" && gGameObjectTypeLabel & "List without empty"  & cr after GAME_OBJECT_LIST_TYPE
+   put "ops.emptydataset" & cr after GAME_OBJECT_LIST_TYPE
+   do  GAME_OBJECT_LIST_TYPE
+   setGameScriptProperty "GameObject","GAME_OBJECT_LIST_TYPE",GAME_OBJECT_LIST_TYPE
+   ops.emptydataset
+end GameObject.ListType
+
+on GameObject.MobileList
+   ops.setDebug ("00068 GameObject.MobileList")
+   put " " after gErrorIndent
+   put "mobileData" into gGameObjectTypeData
+   put "gMobileList" into gGameObjectTypeList
+   set the customPropertySet of this stack to mobileData
+   put the customKeys of this stack into gGameObjectTypeList
+   put gGameObjectTypeList into gMobileList
+   put gMobileList into checkForBs
+   filter gMobileList with "b_*"
+   if checkForBs is not empty then ops.setDebug ("ALERT!! base found in mobileData!!" && cr & checkForBs & cr)
+   
+   filter lines of gGameObjectTypeLabelList without empty
+   ops.emptydataset
+end GameObject.MobileList
+
+on GameObject.motivation tMotivation
+   ops.setDebug ("00069 GameObject.motivation" && tMotivation )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tmotivation into gmotivation
+   GameObject.SetDataToPropertyGlobals
+end GameObject.motivation
+
+on GameObject.parent tParent
+   ops.setDebug ("00070 GameObject.parent" && tParent )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tparent into gparent
+   GameObject.SetDataToPropertyGlobals
+end GameObject.parent
+
+on GameObject.population tPopulation
+   ops.setDebug ("00071 GameObject.population" && tPopulation )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tpopulation into gpopulation
+   GameObject.SetDataToPropertyGlobals
+end GameObject.population
+
+on GameObject.primePropertySet 
+   ops.setDebug ("00072 GameObject.primePropertySet")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to gGameObjectTypeData
+   do "put the" &&  gGameObjectIndexLabel && "of this stack into tData"
+   if tData is empty then put gzeroedGameObjectData into tData
+   do "set the" &&  gGameObjectIndexLabel && "of this stack to tData"
+   set the customPropertySet of this stack to gGameObjectTypeData
+end GameObject.primePropertySet
+
+on GameObject.production tProduction
+   ops.setDebug ("00073 GameObject.production" && tProduction )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tproduction into gproduction
+   GameObject.SetDataToPropertyGlobals
+end GameObject.production
+
+on GameObject.prudence tPrudence
+   ops.setDebug ("00074 GameObject.prudence" && tPrudence )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tprudence into gprudence
+   GameObject.SetDataToPropertyGlobals
+end GameObject.prudence
+
+on GameObject.refreshAllBaseScripts
+   ops.setDebug ("00075 GameObject.refreshAllBaseScripts")
+   put "" into gErrorIndent
+   set the customPropertySet of this stack to "BaseData"
+   put the customKeys of this stack
+   ops.emptyDataSet
+   filter gBaseList without empty
+   repeat for each line gGameObjectIndexLabel in gBaseList
+      if  ops.validateIndexLabel(gGameObjectIndexLabel) is  empty then next repeat
+      GameObject.initBaseScriptText
+      GameObject.initBaseObjectScript
+   end repeat --gBaseList
+end GameObject.RefreshAllBaseScripts 
+
+on gameObject.select tGameObjectIndexLabel
+   ops.setDebug ("00076 GameObject.select" && quoted(tGameObjectIndexLabel))
+   if tGameObjectIndexLabel is not empty then 
+      put tGameObjectIndexLabel into gGameObjectIndexLabel
+   else
+      gameObject.select.empty
+   end if
+   ops.setDebug "gameObject.select" && quoted(gGameObjectIndexLabel)
+   put gameObject.getTypeFromPrefix(gGameObjectIndexLabel) into gGameObjectTypeLabel
+   put gGameObjectTypeLabel & "Data" into gGameObjectTypeData
+   put gGameObjectTypeLabel && gGameObjectIndexLabel into gSelectedObject
+   ops.emptydataset
+   set the currentSelection of this stack to gSelectedObject
+   GameObject.SelectedObject  --- let selectedObject handle all the names
+   ---GameObject.getGlobals --- don't get globals here get them in  GameObject.SelectedObject!!
+   GameObject.GlobalsView
+end gameObject.select tGameOjectTypeLabel,gID
+
+on GameObject.SelectedObject
+   ops.setDebug (cr&"00077 gameObject.SelectedObject" && "?"  )
+   put "" into gErrorIndent
+   put the currentSelection of this stack into gSelectedObject
+   if  word 1 of  gSelectedObject is not among the items of gGameObjectSelectables then
+      GameObject.select.Empty
+      hide image "select"
+      exit GameObject.SelectedObject
+   else
+      
+      put word  1 of gSelectedObject into gGameObjectTypeLabel
+      put gGameObjectTypeLabel &"Data" into gGameObjectTypeData
+      put word 2 of gSelectedObject into gGameObjectIndexLabel
+      put char 1 of gSelectedObject into gGameObjectTypeLabelPrefix
+      put char 3 to -1 of  gGameObjectIndexLabel  into gID
+      GameObject.GlobalsView --- takes care of getting gGameObjectdata for display
+      -- GameObject.Data gGameObjectTypeLabel,gGameObjectIndexLabel   --- making this redundant at this time
+      put "Player" & gParent into gPlayerName
+      if gGameObjectTypeLabel is not empty then do gGameObjectTypeLabel &".refreshGUI gGameObjectIndexLabel" 
+      show image "select"
+   end if
+   ops.setDebug ("00077 gameObject.SelectedObject = " && gGameObjectIndexLabel & cr  )
+end GameObject.SelectedObject
+
+on GameObject.select.empty
+   ops.setDebug ("00078 GameObject.select.empty")
+   put "" into gErrorIndent
+   ops.emptydataset
+   ops.traceCPropset "GameObject.select.empty"
+   set the currentSelection of this stack to empty
+   put "" into gSelectedObject
+   put "" into gGameObjectData
+   put "" into gGameObjectTypePrefix
+   put "" into gGameObjectTypeData
+   put "" into gGameObjectIndexLabel
+   put "" into gGameObjectTypeLabel
+   put "" into gID
+end GameObject.select.empty
+
+on GameObject.selectionChanged  gGameObjectTypeLabel,gGameObjectIndexLabel
+   ops.setDebug ("00079 GameObject.selectionChanged" && gGameObjectTypeLabel &&gGameObjectIndexLabel )
+   put "" into gErrorIndent
+   GameObject.setSelectedObjectsHistory
+   ops.emptydataset
+   put  gGameObjectTypeLabel &&gGameObjectIndexLabel into gSelectedOBject
+   ops.traceCPropset "GameObject.selectionChanged" 
+   set the currentSelection of this stack to gSelectedOBject
+   
+end GameObject.selectionChanged
+
+on GameObject.selectionCircle  
+   ops.setDebug ("00080 GameObject.selectionCircle")
+   put "" into gErrorIndent
+   if there is not an image "select" then Init.UnitSelectionImage
+   --GameObject.getSelectedObject
+   if there is a graphic gGameObjectIndexLabel then
+      set the originXY of image "select" to  the originXY of graphic gGameObjectIndexLabel
+      set the loc of image "select" to  the loc of graphic gGameObjectIndexLabel
+      show image "select"
+      set the currentSelection of image "select" to gSelectedObject
+      --set the layer of graphic gGameObjectIndexLabel to top
+   else
+   end if
+end GameObject.selectionCircle
+
+on GameObject.selectionIsNotValid gErrorText
+   ops.setDebug ("00081 GameObject.selectionIsNotValid" && gErrorText )
+   put "" into gErrorIndent
+end GameObject.selectionIsNotValid
+
+on GameObject.sendto tSendto
+   ops.setDebug ("00082 GameObject.sendto" && tSendto )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tsendto into gsendto
+   GameObject.SetDataToPropertyGlobals
+end GameObject.sendto
+
+on GameObject.SendToPath gGameObjectIndexLabel, gRendezvousIndexLabel, xy
+   if gGameObjectIndexLabel is empty then exit GameObject.SendToPath
+   if gGameObjectIndexLabel is a number then 
+      put char 1 of gSelectedObject &"_" & string.PadNumber(tSourceName,3) into gGameObjectIndexLabel
+   end if
+   ops.emptyDataSet
+   set the sendTo of graphic gGameObjectIndexLabel to gRendezvousIndexLabel
+   set the sendToDestination of graphic "SendToPath" to gRendezvousIndexLabel
+   set the sendToSource of graphic "SendTopath" to gGameObjectIndexLabel
+   GameObject.SendTo gRendezvousIndexLabel
+   UI.refreshSendTo
+   UI.fixcur
+end GameObject.SendToPath
+
+on GameObject.setBaseScriptGlobal gGameObjectIndexLabel,tBaseScriptText
+   ops.setDebug ("00083 GameObject.setBaseScriptGlobal" && gGameObjectIndexLabel &&tBaseScriptText )
+   put "" into gErrorIndent
+   if tBaseScriptText is not empty then put tBaseScriptText into gBaseScriptText
+   replace ("BASE" & "_") with empty in gBaseScriptText
+end GameObject.setBaseScriptGlobal
+
+on GameObject.SetDataToPropertyGlobals
+   ops.setDebug ("00084 GameObject.SetDataToPropertyGlobals" && quoted(gGameObjectTypeLabel) &comma& quoted(gGameObjectIndexLabel))
+   --ops.setDebug ("00084 GameObject.SetDataToPropertyGlobals all game object properties of"  && quoted(gGameObjectTypeLabel)  & cr & "gGameObjectData BEFORE"  && gGameObjectData)
+   put "" into gErrorIndent
+   if IDItem is empty or IDItem < 1 or IDItem is not a number then init.GameObjectPropertyItemOffsetEnumeration  -- make sure we know what *Item is
+   put gID into item IDItem of gGameObjectData
+   put gtype into item typeItem of gGameObjectData
+   put gx into item xItem of gGameObjectData
+   put gy into item yItem of gGameObjectData
+   put gparent into item parentItem of gGameObjectData
+   put gbuild into item buildItem of gGameObjectData
+   put gassembly into item assemblyItem of gGameObjectData
+   put gpopulation into item populationItem of gGameObjectData
+   put gproduction into item productionItem of gGameObjectData
+   put gprudence into item prudenceItem of gGameObjectData
+   put gcivilization into item civilizationItem of gGameObjectData
+   put gmotivation into item motivationItem of gGameObjectData
+   put geducation into item educationItem of gGameObjectData
+   put glevel into item levelItem of gGameObjectData
+   put glife into item lifeItem of gGameObjectData
+   put gsendto into item sendtoItem of gGameObjectData
+   if gGameObjectTypeData is empty then put gGameObjectTypeLabel & "Data" into gGameObjectTypeData
+   do "set the customPropertySet of this stack to" && gGameObjectTypeData
+   ops.setDebug ("GameObject.SetDataToPropertyGlobals setting the" && gGameObjectIndexLabel && "of" && gGameObjectTypeData && "to gGameObjectData AFTER global transfers")
+   if gGameObjectIndexLabel is not empty then do "set the" && gGameObjectIndexLabel &&"of this stack to gGameObjectData"
+   ops.emptydataset
+   --ops.setDebug ("$$ 00084 GameObject.SetDataToPropertyGlobals AFTER SET TO GLOBALS:" &cr& gGameObjectTypeLabel  & cr & tab & gGameObjectData)
+end GameObject.SetDataToPropertyGlobals
+
+on GameObject.setGraphicObjectPropertiesToPropertyGLobals 
+   ops.setDebug ("00087 GameObject.setGraphicObjectPropertiesToPropertyGLobals")
+   put "" into gErrorIndent
+   ops.deprecate GameObject.setGraphicObjectPropertiesToPropertyGLobals,"Unecessary extra data setting, no call to data"
+   GameObject.SelectedObject
+   -- GameObject.setGraphicObjectPropertiesToPropertyGLobals Probably unecessary for this game -deprecate? 01-302-2024
+   if there is not a graphic gGameOBjectIndexLabel then exit  GameObject.setGraphicObjectPropertiesToPropertyGLobals
+   set the customPropertySet of graphic gGameOBjectIndexLabel  to  empty
+   put "put the" && gGameObjectTypeLabel && "of graphic" && gGameOBjectIndexLabel &&"into gGameObjectBaseArray" & cr before SET_OBJECT_PROPERTIES_TO_PROPERTY_GLOBALS
+   repeat for each item tProp in gGameObjectProperties
+      put "g" & tProp into gGameObjectGlobalLabel
+      put "put" && gGameObjectGlobalLabel && "into gGameObjectBaseArray["& quote &tProp &quote &"]" & cr after SET_OBJECT_PROPERTIES_TO_PROPERTY_GLOBALS
+   end repeat
+   do SET_OBJECT_PROPERTIES_TO_PROPERTY_GLOBALS
+   setGameScriptProperty "OBJECT","SET_OBJECT_PROPERTIES_TO_PROPERTY_GLOBALS",SET_OBJECT_PROPERTIES_TO_PROPERTY_GLOBALS
+   set the base of graphic gGameObjectIndexLabel to gGameObjectBaseArray
+   ops.emptyDataSet
+end GameObject.setGraphicObjectPropertiesToPropertyGLobals
+
+on GameObject.setPropertyValuesFromData
+   ops.setDebug ("00088 GameObject.setPropertyValuesFromData")
+   put "" into gErrorIndent
+   if IDItem is empty or IDItem < 1 or IDItem is not a number then init.GameObjectPropertyItemOffsetEnumeration  -- make sure we know what *Item is
+   --put item IDItem of gGameObjectData into gID -- no reason to reset ID
+   put item typeItem of gGameObjectData into gtype
+   put item xItem of gGameObjectData into gx
+   put item yItem of gGameObjectData into gy
+   put item parentItem of gGameObjectData into gparent
+   put item buildItem of gGameObjectData into gbuild
+   put item assemblyItem of gGameObjectData into gassembly
+   put item populationItem of gGameObjectData into gpopulation
+   put item productionItem of gGameObjectData into gproduction
+   put item prudenceItem of gGameObjectData into gprudence
+   put item civilizationItem of gGameObjectData into gcivilization
+   put item motivationItem of gGameObjectData into gmotivation
+   put item educationItem of gGameObjectData into geducation
+   put item levelItem of gGameObjectData into glevel
+   put item lifeItem of gGameObjectData into glife
+   put item sendtoItem of gGameObjectData into gsendto
+end GameObject.setPropertyValuesFromData
+
+on GameObject.setSelectedObjectsHistory
+   ops.setDebug ("00089 GameObject.setSelectedObjectsHistory")
+   put "" into gErrorIndent
+   set the previousSelection of this stack to gSelectedObject
+   put gSelectedObject & cr after gSelectedObjectsHistory
+end GameObject.setSelectedObjectsHistory
+
+on GameObject.TOOOTIREDTODOTHISONW__getGlobalsFromPrefix tPrefixInput
+   ops.setDebug ("00090 GameObject.TOOOTIREDTODOTHISONW__getGlobalsFromPrefix" && tPrefixInput )
+   put "" into gErrorIndent
+   if tPrefixInput is not empty then 
+      put char 1 of  tPrefixInput into gGameObjectTypePrefix
+      set the currentSlection of this stack to tPrefixInput
+   else
+      put char 1 of the currentSelection of this stack into gGameObjectTypePrefix
+   end if
+end GameObject.TOOOTIREDTODOTHISONW__getGlobalsFromPrefix
+
+on GameObject.type tType
+   ops.setDebug ("00091 GameObject.type" && tType )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put ttype into gtype
+   GameObject.SetDataToPropertyGlobals
+end GameObject.type
+
+on GameObject.x tX
+   ops.setDebug ("00092 GameObject.x" && tX )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put tx into gx
+   GameObject.SetDataToPropertyGlobals
+end GameObject.x
+
+on GameObject.y tY
+   ops.setDebug ("00093 GameObject.y" && tY )
+   put "" into gErrorIndent
+   GameObject.SETPropertyValuesFromData
+   put ty into gy
+   GameObject.SetDataToPropertyGlobals
+end GameObject.y
+
+on GameObjects.Group gGroupName,gGroupList
+   ops.setDebug ("00094 GameObjects.Group" && gGroupName &&gGroupList )
+   put "" into gErrorIndent
+   do "set the customPropertySet of this stack to" && gGameObjectTypeData 
+   put the customKeys of this stack into gGameObjectDataKeys
+   ops.emptyDataSet
+   filter lines of gGroupList without empty
+   repeat for each line tGroupIndex in gGroupList
+      put " graphic" && quote & tGroupIndex &quote && "and"&space after sGroupString
+   end repeat
+   if there is a group "Base.Group" then delete group "Base.Group"
+   do "group" && word 1 to -2 of sGroupString
+   set the name of it to "Base.Group"
+end GameObjects.Group
+
+function GameObject.createMobile gGameObjectIndexLabel 
+   ops.setDebug ("00246 GameObject.createMobile")
+   put "" into gErrorIndent
+   ops.setdebug ("$$ GameObject.createMobile received"&&quoted(gGameObjectIndexLabel) )
+   
+   --- GET THE SOURCE BASE DATA THAT MADE THE MOBILE
+   --- 02-09-2024 ASSUME WE HAVE THE DATA
+   --- GameObject.Select gGameObjectIndexLabel    
+   	 
+   --- CREATE THE MOBILE ID  
+   add 1 to gNumberOfGameObjects
+   put string.PadNumber(gNumberOfGameObjects,3) into gMobileID
+   	   
+   --- GET THE BUILD TYPE AND PREFIX
+   ops.setdebug("GameObject.createMobile gBuild =" && gBuild)
+   if gBuild < 2 or gBuild is empty then put 2 into gBuild    -- gBuild should not be 1 or 'base'!!
+   put item gBuild of gGameObjectSelectables into gMobileTypeIndexLabel
+   
+   put char 1 of gMobileTypeIndexLabel  into gMobileTypePrefix
+   ops.setdebug("GameObject.createMobile gBuild =" && gBuild)
+   ops.setdebug("GameObject.createMobile gMobileTypePrefix =" && gMobileTypePrefix)	   
+   
+   --- CREATE THE NAME OF THE MOBILE
+   put gMobileTypePrefix &"_"& gMobileID  into gMobileIndexLabel
+   ops.setdebug("GameObject.createMobile gMobileIndexLabel =" && gMobileIndexLabel)	 
+   
+   --- PASS THE BASE DATA TO THE MOBILE DATA
+   put gGameObjectData into gMobileData
+   
+   --- SET THE ID OF THE MOBILE OBJECT TO  NUMBER OF OBJECTS
+   put gMobileID into item 1 of gMobileData
+   
+   --- CHANGE THE OBJECT TYPE TO THE BUILD TYPE
+   put gBuild into item typeitem of gMobileData
+   
+   ops.setdebug("GameObject.createMobile gMobileID =" && gMobileID)	 
+   	   
+   ---  ADD MOBILE OBJECT TO PROWLERDATA ARRAY  -- maybe not
+   --- Base.AssignProwler
+   
+   ops.setDebug("GameObject.createMobile setting MobileData of gMobileIndexLabel" && gMobileIndexLabel)
+   
+   -- ADD MOBILE OBJECT TO MOBILEDATA ARRAY
+   if char 1 of gMobileIndexLabel is "d" then 
+      set the customPropertySet of this stack to  ProwlerData
+      do "put the" && gGameObjectIndexLabel  && "of stack (the mainStack of this stack) into gMobileDataArray"
+      put gMobileData into gMobileDataArray[gMobileIndexLabel]
+      do "set the" && gGameObjectIndexLabel  && "of stack (the mainStack of this stack) to gMobileDataArray"
+   else
+      set the customPropertySet of this stack to  MobileData
+      do "set the" && gMobileIndexLabel  && "of stack (the mainStack of this stack) to gMobileData"
+   end if
+   
+   
+   
+   
+   ops.emptyDataSet
+   
+   ops.setDebug("GameObject.createMobile setting PlayerData to gMobileIndexLabel" && gMobileIndexLabel)
+   -- STORE THE DATA TO THE PLAYER
+   set the customPropertySet of this stack to "PlayerData"
+   GameObject.getPropertyValuesFromData
+   put "Player"& gParent into gPlayerName
+   do "put the" && gPlayerName && "of this stack into gPlayerDataArray"
+   put gMobileData into gPlayerDataArray[gMobileIndexLabel] 
+   do "set the" && gPlayerName && "of this stack to gPlayerDataArray"
+   ops.emptyDataSet
+   
+   --- IF MOBILE OBJECT IS NOT "DEFENSE" THEN CREATE A GRAPHIC FOR IT	   
+   if gBuild > 2 then UI.createMobileGraphic gGameObjectIndexLabel
+   
+   put item SendToItem of gMobileData into mSendTo
+   
+   --- IF MOBILE OBJECT IS NOT "DEFENSE" THEN CREATE A PATH GRAPHIC FOR IT	 
+   if gBuild > 2 and mSendTo is not empty and mSendTo is not 0 and there is a graphic mSendTo then
+      -- CREATE A PATH AT THE TIME OF MOBILE CREATION TO PROCEED ALONG THE SENDTO PATH
+      UI.createPathFromSendTo 
+   end if
+   ops.setDebug("__GameObject.createMobile complete with " &&  gMobileIndexLabel  &&"&"&& gMobilePathIndexLabel)
+   return  gMobileData
+end GameObject.createMobile
+
+function GameObject.createScripthells tPrefix,tSuffix
+ops.setDebug ("00247 GameObject.createScripthells")
+put "" into gErrorIndent
+	   put "" into INIT_REFRESH_GAME_OBJECT_UI_SCRIPT
+	   repeat for each item tType in gGameObjectTypes
+	      put tPrefix & tType &"UI" into tHandlerLabel
+	      put "----"&toupper(tHandlerLabel) && "_SHELL" & cr after INIT_REFRESH_GAME_OBJECT_UI_SCRIPT
+	      put "on" && tHandlerLabel &&"tArg"&cr after INIT_REFRESH_GAME_OBJECT_UI_SCRIPT
+	      put tab & tab & "----!" &tab& tHandlerLabel &tab& toupper("is undefined!") into gDebugUpdate
+	      put gDebugUpdate & cr after INIT_REFRESH_GAME_OBJECT_UI_SCRIPT
+	      ops.setDebug gDebugUpdate
+	      put "end" && tHandlerLabel & cr after INIT_REFRESH_GAME_OBJECT_UI_SCRIPT
+	      put "----END"&toupper(tHandlerLabel) && "_SHELL" & cr & cr after INIT_REFRESH_GAME_OBJECT_UI_SCRIPT
+   end repeat
+	   return INIT_REFRESH_GAME_OBJECT_UI_SCRIPT
+end GameObject.createScripthells
+
+function GameObject.getData gGameObjectTypeLabel , gGameObjectIndexLabel
+   ops.setDebug ("00249 GameObject.getData")
+   put "" into gErrorIndent
+   set itemDel to comma
+   if number of items of gGameObjectTypeLabel > 1 then
+      ops.setDebug ("!!! GameObject.getData RECEIVED ITEMIZED gGameObjectTypeLabel!!!" && quoted (gGameObjectTypeLabel))
+      ops.setDebug ("GameObject.getData gGameObjectTypeLabel =" && quoted(gGameObjectTypeLabel))
+      ops.setDebug ("GameObject.getData gGameObjectIndexLabel =" && quoted(gGameObjectIndexLabel))
+      put item 2 of gGameObjectTypeLabel into gGameObjectIndexLabel
+      put item 1 of gGameObjectTypeLabel into gGameObjectTypeLabel
+   end if
+   	   
+   ops.setDebug ("GameObject.getData gGameObjectTypeLabel = " && quoted(gGameObjectTypeLabel))
+   ops.setDebug ("GameObject.getData gGameObjectIndexLabel = " && quoted(gGameObjectIndexLabel))
+   	   
+   if gGameObjectTypeLabel is empty or gGameObjectIndexLabel is empty then
+      ops.setDebug ("GameObject.getData gGameObjectTypeLabel, gGameObjectIndexLabel  EMPTY?!?")
+      return empty
+   end if
+   	   
+   put "put" &&quote& gGameObjectTypeLabel &"Data" &quote && "into gGameObjectTypeData"  &cr into GET_CUSTOM_PROPERTY_DATA
+   put "do" && quote & "set the customPropertySet of this stack to" &&  gGameObjectTypeLabel &"data" &quote & cr after GET_CUSTOM_PROPERTY_DATA
+   put "put the" && gGameObjectIndexLabel && "of this stack into gGameObjectData" & cr after GET_CUSTOM_PROPERTY_DATA
+   put "GameObject.setPropertyValuesFromData" & cr after  GET_CUSTOM_PROPERTY_DATA
+   put "ops.emptyDataSet" & cr after GET_CUSTOM_PROPERTY_DATA
+   ops.setDebug ("getCustomPropertyData : GET_CUSTOM_PROPERTY_DATA" && gGameObjectIndexLabel )
+   
+   do GET_CUSTOM_PROPERTY_DATA
+   put cr  &"gGameObjectData="&& gGameObjectData & cr  after GET_CUSTOM_PROPERTY_DATA 
+   --string.writeFile "GameObject.getData  GET_CUSTOM_PROPERTY_DATA","GameObject.getData = "&gGameObjectIndexLabel,(cr&GET_CUSTOM_PROPERTY_DATA)
+   return gGameObjectData
+end GameObject.getData
+
+function GameObject.getIndexInvalid targvalue,targLabeL,tSource
+ops.setDebug ("00250 GameObject.getIndexInvalid")
+put "" into gErrorIndent
+	   put "" into gGameObjectIndexInvalid
+	   put false into bGameObjectIndexInvalid
+	   put "" into gErrorType
+	   put word -1 of tArgValue into tArgValue
+	   if (targvalue is a number) then put "IS A NUMBER" into gErrorType
+	   if (targvalue = 0) then put "IS A ZERO " into gErrorType
+	   if (char -1 of targvalue is not a number) then put "NO NUMERAL ENDING" into gErrorType
+	   if (char 1 of targvalue is a number) then put "STARTS WITH NUMBER" into gErrorType
+	   if targvalue is not empty then
+	      repeat with i = 1 to number of chars of targvalue
+	         if chartonum(char i of targvalue) < 65 or chartonum(char i of targvalue) > 123 then 
+	            if char i of targvalue is not a number then put "!INVALID CHARACTERS" into gErrorType
+         end if
+      end repeat
+   end if
+	   
+	   if (targvalue is empty) then put "IS A EMPTY" into gErrorType
+	   if gErrorType is not empty then
+	      put "-" &"-" &"-! ERROR @" && tSource && "variable" && targLabeL &tab& gErrorType into gErrorText
+	      ops.setDebug (gErrorText)
+	      put true into bGameObjectIndexInvalid
+   end if
+	   return bGameObjectIndexInvalid
+end GameObject.getIndexInvalid
+
+function GameObject.getProperty gPropertyName
+ops.setDebug ("00252 GameObject.getProperty")
+put "" into gErrorIndent
+	   if gPropertyName is not a number then
+	      put itemOffset(gPropertyName,gGameObjectProperties) into gPropertyOffset
+	   else
+	      put gPropertyName into gPropertyOffset
+   end if
+	   return item gPropertyOffset of gData 
+end GameObject.getProperty
+
+function GameObject.getTypeFromPrefix gGameObjectIndexLabel
+ops.setDebug ("00253 GameObject.getTypeFromPrefix")
+put "" into gErrorIndent
+	   put char 1 of gGameObjectIndexLabel into tCheck
+	   put itemOffset(tCheck,gGameObjectTypes) into gType
+	   put item gType of gGameObjectTypes into gGameObjectTypeLabel
+	   return gGameObjectTypeLabel
+end GameObject.getTypeFromPrefix
+
+function GameObject.GlobalSearch
+ops.setDebug ("00254 GameObject.GlobalSearch")
+put "" into gErrorIndent
+	   ops.setDebug "GameObjectGlobalSearch"
+	   put the script of stack (the mainStack of this stack) into tScript
+	   -- space &"gG", ie, gGameObject
+	   put numtochar(32) & numtoChar (103)& numtochar(71) &"ameObject" into tGlobalFilter
+	   filter lines of tScript with "*"&tGlobalFilter&"*"
+	   repeat for each line L in tScript
+	      put word wordOffset(tGlobalFilter,L) of L & cr after Tlist
+   end repeat
+	   filter lines of tList without empty
+	   return tList
+	   repeat with I = number of lines of Tlist down to 1
+	      put line I of tlist into iLine
+	      filter tList without iLine
+	      put ILine & cr after tOut
+   end repeat
+	   return tOut
+end GameObject.GlobalSearch
+
+function GameObject.listowned gGameObjectTypeLabel, gPlayerNumber
+   ops.setDebug ("00255 GameObject.listowned")
+   put "" into gErrorIndent
+   ops.setDebug "GameObject.listowned"
+   --put tGameObjectTypeLabel into gGameObjectTypeLabel
+   if gPlayerNumber is empty or gPlayerNumber < 1 or gPlayerNumber > gNumberOfPlayers then return empty
+   ops.setDebug ("PlayerList()")
+   set the customPropertySet of this stack to PlayerData
+   do "put the Player"&gPlayerNumber &&"of this stack into gPlayerDataArray"
+   ops.emptydataset
+   
+   put the keys of gPlayerDataArray into gPlayerDataKeys
+   filter gPlayerDataKeys with  char 1 of gGameObjectTypeLabel &"_"&"*"
+   filter lines of gPlayerDataKeys without empty
+   
+   return gPlayerDataKeys
+end GameObject.listowned
+
+function GameObject.PropertyDetails tArg,tVal
+ops.setDebug ("00256 GameObject.PropertyDetails")
+put "" into gErrorIndent
+	   switch tArg
+	      case empty
+	      case default
+	         return gGameObjectProperties
+	         break
+	      case "get"
+	         if tval is not empty then 
+	            put itemOffset(tVal,gGameObjectProperties) into tOffset	
+	            return (item tOffset of gGameObjectData)
+	         else 
+	            return gGameObjectData
+         end if
+	         break
+	      case "offset"
+	         return itemOffset(tVal,gGameObjectProperties)
+	         break
+	      case "name"
+	         return item tVal of gGameObjectProperties
+	         break
+	      case "list"
+	         put gGameObjectProperties into tList
+	         replace comma with cr in tList
+	         return tList
+	         break
+	      case "globals"
+	         if tVal is not empty then put GameObject.setTypeLabel(tVal) into gGameObjectTypeLabel 
+	         put "g"&gGameObjectTypeLabel & gGameObjectProperties into tList
+	         replace comma with cr&"g"&gGameObjectTypeLabel in tList
+	         return tList
+	      case "current"
+	         repeat for each item i in gGameObjectProperties
+	            put "put" && i & "&&" &  "g"&i & "&&cr after tResult" & cr after GET_GAME_OBJECT_CURRENT_GLOBAL_VALUES
+         end repeat
+	         do GET_GAME_OBJECT_CURRENT_GLOBAL_VALUES
+	         return tResult
+	         break
+	      case "display"
+	         repeat for each item i in gGameObjectProperties
+	            put "put g"&i & "&&cr after tResult" & cr after DISPLAY_GAME_OBJECT_CURRENT_GLOBAL_VALUES
+         end repeat
+	         
+	         do DISPLAY_GAME_OBJECT_CURRENT_GLOBAL_VALUES
+	         return tResult & cr & DISPLAY_GAME_OBJECT_CURRENT_GLOBAL_VALUES
+	         
+	         break
+   end switch
+	   return empty
+end GameObject.PropertyDetails
+
+function GameObject.setDataScript gPropertyName,gSetDataValue,gID,gGameObjectTypeLabel
+ops.setDebug ("00257 GameObject.setDataScript")
+put "" into gErrorIndent
+	   --ops.setDebug ("GameObject.setDataScript!! Sets up all the globals labels, items, etc each pass")
+	   put "" into SET_VALUE_OF_GAME_OBJECT_DATA
+	   if gID is empty then GameObject.SelectedObject
+	   if gID is empty then return empty
+	   if gSetDataValue is empty then do "put g" &gPropertyName &&"into gSetDataValue"
+	   set itemDel to comma
+	   put "put" && quote& gID &quote&&  "into gID" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   put gpropertyName&"Item" into gPropertyItemOffset
+	   if GameObject.typeIsInvalid(gGameObjectTypeLabel) then  return empty
+	   put "put itemOffset(" &quote& gPropertyName &quote&",gGameObjectProperties) into" && gPropertyItemOffset & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   --do SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   put "g" & string.upchar(gPropertyName) into gGameObjectProperty
+	   --   this is the value of the offset put value(gPropertyItemOffset) & cr before SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   -- set the property to the value
+	   put "put"&& quote& value(gSetDataValue) & quote &&"into" && gGameObjectProperty  & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   -- get the type label
+	   put  "put" && quote & gGameObjectTypeLabel &quote &&"into gGameObjectTypeLabel" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   -- get the prefix
+	   put "put char 1 of gGameObjectTypeLabel into gGameObjectTypePrefix" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   -- get the object index label
+	   put "put gGameObjectTypePrefix &" &&quote&"_"&quote&& "& gID into gGameObjectIndexLabel" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   -- get the data set
+	   put "put gGameObjectTypeLabel &"&quote&  "Data" &quote& " into gGameObjectTypeData" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   -- prime the data set
+	   --put "do" && quote & "GameObject.primePropertySet" & quote & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   -- SET the data set
+	   put "set the customPropertySet of this stack to" && gGameObjectTypeData & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   
+	   -- get the current GameObjectData
+	   put  "put the" && gGameObjectIndexLabel && "of this stack into gGameObjectData" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   do SET_VALUE_OF_GAME_OBJECT_DATA
+	   ops.setdebug ("GameObject.setDataScript passing custom property contents to gGameObjectData")
+	   -- lets see what that data looks like
+	   put "put"&& quote& gGameObjectData  &quote &&"into gGameObjectData" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   -- BUT WE DON'T WANT THAT DATA WE WANT OUR NEW DATA
+	   
+	   put "put gID,gType,gX,gY,gParent,gBuild,gAssembly,gPopulation,gProduction,gPrudence,gCivilization,gMotivation,gEducation,gLevel,gLife,gSendTo into gGameObjectData" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   ops.setdebug ("GameObject.setDataScript putting globals into gGameObjectData :" && gID,gType,gX,gY,gParent,gBuild,gAssembly,gPopulation,gProduction,gPrudence,gCivilization,gMotivation,gEducation,gLevel,gLife,gSendTo)
+	   -- zero the data if it's empty
+	   put "if gGameObjectData is empty or number of items of gGameObjecta <> number of items of gGameObjectProperties then put gZeroedGameObjectData into gGameObjectData" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   -- just in case the data is not set let's set it
+	   put  "set the" && gGameObjectIndexLabel && "of this stack to gGameObjectData" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   ops.setDebug ("GameObject.setDataScript setting" && gPropertyName &&"into item" && gPropertyName && "of gGameObjectData"  && gGameObjectData)
+	   -- set the property item value in the data
+	   put "put"&&  gGameObjectProperty  &&"into item"&& gPropertyName &"item of  gGameObjectData" &cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   
+	   ops.setDebug ("GameObject.setDataScript saving  gGameObjectData of gGameObjectIndexLabel" && gGameObjectIndexLabel &&"to" && gGameObjectData)
+	   put  "set the" && gGameObjectIndexLabel && "of this stack to gGameObjectData" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   
+	   put "ops.emptyDataSet" & cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   setGameScriptProperty "GameObject","SET_VALUE_OF_GAME_OBJECT_DATA",SET_VALUE_OF_GAME_OBJECT_DATA
+	   put cr after SET_VALUE_OF_GAME_OBJECT_DATA
+	   put SET_VALUE_OF_GAME_OBJECT_DATA
+	   -- do SET_VALUE_OF_GAME_OBJECT_DATA send the script without running it here in functions
+	   ops.setDebug ("SET_VALUE_OF_GAME_OBJECT_DATA")
+	   --debug
+	   return SET_VALUE_OF_GAME_OBJECT_DATA
+end GameObject.setDataScript
+
+function GameObject.setTypeLabel gGameObjectIndexLabel
+ops.setDebug ("00258 GameObject.setTypeLabel")
+put "" into gErrorIndent
+	   set itemDel to comma
+	   -- from the game object name get it's type
+	   -- the selecteable object types are these set in the global inits 
+	   ops.setdebug ( "GameObject.setTypeLabel" &"base,defense,expand,mobile,offense,rendezvous,service" ,gGameObjectSelectableItems)  
+	   if GameObject.getIndexInvalid(gGameObjectIndexLabel,"gSelectedObject","GameObject.setTypeLabel") is true then return empty 
+	   put itemoffset(char 1 of gGameObjectIndexLabel, gGameObjectsSelectableItems) into gGameObjectType  --  gGameObjectType this is a integer
+	   
+	   if gGameObjectType <> 0 and gGameObjecType <> empty then 
+	      put char 1 of gGameObjectTypeLabel into gGameObjectTypePrefix
+	      put gGameObjectTypeLabel & "Data" into gGameObjectTypeData
+   end if
+	   put item gGameObjectType of gGameObjectsSelectableItems into gGameObjectTypeLabel
+	   
+	   ---if tArg is empty then return empty
+	   return gGameObjectTypeLabel
+	   
+end GameObject.setTypeLabel
+
+function GameObject.typeIsInvalid gGameObjectTypeLabel
+ops.setDebug ("00259 GameObject.typeIsInvalid")
+put "" into gErrorIndent
+	   --ops.setDebug "GameObject.typeIsInvalid"
+	   put false into bTypeInvalid
+	   put gGameObjectTypeLabel is not empty into bTypeInvalid
+	   put gGameObjectTypeLabel is not word  1 of gSelectedObject into bTypeInvalid
+	   if bTypeInvalid  then send ops.setDebug && ("gGameObjectTypeLabel is invalid"&&quoted("gGameObjectTypeLabel is empty")) to this stack in 30 milliseconds
+	   return bTypeInvalid
+end GameObject.typeIsInvalid
+
+function GameObject.validateTypeAndIndex gGameObjectTypeLabel,gGameObjectIndexLabel
+ops.setDebug ("00260 GameObject.validateTypeAndIndex")
+put "" into gErrorIndent
+	   
+	   
+	   put ops.ValidateGameObjectType(gGameObjectTypeLabel)  into gGameObjectTypeLabel
+	   if gGameObjectTypeLabel is empty then
+	      ops.setdebug ("ERROR  GameObject.Data ops.ValidateGameObjectType(gGameObjectTypeLabel EMPTY" &tab&quote&gGameObjectTypeLabel&quote)
+	      put empty into gGameObjectIndexLabel
+   end if
+	   
+	   -- validate gGameObjectIndexLabel
+	   ops.setdebug ("GameObject.getData sending ops.validateIndexLabel gGameObjectIndexLabel " &tab&quote&gGameObjectIndexLabel&quote)
+	   put ops.validateIndexLabel(gGameObjectIndexLabel)  into gGameObjectIndexLabel
+	   if gGameObjectIndexLabel is empty then 
+	      ops.setdebug ("ERROR GameObject.Data ops.validateIndexLabel(gGameObjectIndexLabel) EMPTY" &tab&quote&gGameObjectIndexLabel&quote)
+   end if
+	   
+	   if gGameObjectTypeLabel is empty or gGameObjectIndexLabel is empty  then GameObject.emptySelection
+	   
+	   return (gGameObjectTypeLabel is empty or gGameObjectIndexLabel is empty)
+end GameObject.validateTypeAndIndex
+
+function GameObjectgetIDFromIndexLabel tIndexLabel
+ops.setDebug ("00261 GameObjectgetIDFromIndexLabel")
+put "" into gErrorIndent
+	   if tIndexLabel is empty then put word 2 of gSelectedObject into tIndexLabel
+	   put tIndexLabel into gGameObjectIndexLabel
+	   put char 1 of gGameObjectIndexLabel into gGameObjectTypePrefix
+	   set itemDel to "_"
+	   return char 3 to -1 of tIndexLabel
+end GameObjectgetIDFromIndexLabel
+
+function GameObject.getTypeLabelFromTypeValue
+   return item gType of gGameObjectTypes 
+end GameObject.getTypeLabelFromTypeValue
+
+function GameObject.getTypeLabelFromBuildValue
+   return item gBuild of gGameObjectTypes 
+end GameObject.getTypeLabelFromBuildValue
+

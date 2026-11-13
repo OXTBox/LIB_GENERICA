@@ -1,0 +1,22 @@
+-- generic scrollbar script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): scrollbar "population" (id 1675)
+-- handlers: mouseDown, scrollBarDrag
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+global originalVal
+
+on mouseDown
+put the thumbPosition of me into originalVal
+end mouseDown
+
+on scrollBarDrag tval
+   if the mouse is down then
+   lock messages
+   put the lastVal of me into tOriginalVal
+   UI.AdjustSliders tVal,tOriginalVal,(the short name of me)
+   put the thumbPosition of me into originalVal
+   set the lastVal of me to tVal
+   unlock messages
+   end if
+end scrollBarDrag

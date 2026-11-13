@@ -1,0 +1,9 @@
+-- generic button script
+-- source: GenericaProperties_03182026a
+-- used by 1 object(s): button "ShowExample" (id 1174)
+-- handlers: mouseUp
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseUp
+   toggleShowExamples (the hilite of me)
+end mouseUp

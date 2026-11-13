@@ -1,0 +1,24 @@
+-- generic field script
+-- source: GAD_WORKING_03_16_2026
+-- used by 3 object(s): field "baseList" (id 1645); field "mobproperties" (id 1659); field "mobilepath" (id 1660)
+-- handlers: mouseEnter, mouseDown
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+globale gSelectionData
+
+--on mouseEnter
+--filter lines of me without empty
+--end mouseEnter
+on mouseEnter
+lock screen
+put the hilitedLine of me into tN
+filter lines of me without empty
+set the hilitedLine of me to tN
+unlock screen
+end mouseEnter
+
+on mouseDown
+put word 2 selectedLine of me into N
+put line N of me into myLine
+if myLine is not empty then ListSelection (the short name of me)
+end mouseDown

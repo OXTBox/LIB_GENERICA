@@ -1,0 +1,20 @@
+-- generic field script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): field "ProductionTypeLabel" (id 1670)
+-- handlers: mouseUp, mouseDown, mouseEnter, mouseLeave
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseUp
+   popup button "ProductionTypeMenu"
+set the textStyle of me to empty
+--set the foregroundColor of me to white
+end mouseUp
+on mouseDown
+set the textStyle of me to bold
+end mouseDown
+on mouseEnter
+set the foregroundColor of me to 240,240,240
+end mouseEnter
+on mouseLeave
+set the foregroundColor of me to 230,230,230
+end  mouseLeave

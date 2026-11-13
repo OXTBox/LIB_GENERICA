@@ -1,0 +1,35 @@
+-- generic field script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): field "MobileListField" (id 28434)
+-- handlers: mouseDown
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseDown
+put word 2 selectedLine of me into N
+set the customPropertySet of this stack to empty
+set the disabled of button "ClearPathPoint" to (line n of me is empty)
+
+if line n of me is not empty then 
+set the selectedPathPoint of this stack to N & comma & line N of Me
+
+if there is not a graphic "pathMarker" of this stack then
+set the style of the templateGraphic to "rectangle"
+set the rect of the templateGraphic to 0,0,6,6
+set the name of the templateGraphic to "pathMarker"
+set the opaque of the templateGraphic to true
+set the backgroundColor of the templateGraphic to white
+
+create graphic "pathMarker"
+end if
+put (line N of Me) into originXY
+
+set the orginXY of graphic "pathMarker" to (originXy)
+set the layer of graphic "pathMarker" to top
+--zoomedObject ("pathMarker")
+
+show graphic "PathMarker"
+else
+if there is a graphic "pathMarker" then hide graphic "pathMarker"
+end if
+
+end mouseDown

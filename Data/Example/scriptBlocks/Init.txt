@@ -1,0 +1,737 @@
+-- script block: Init (handlers whose names start with "Init"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026, GenericaProperties_03182026a
+-- handlers: 34
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on init.RendezvousScript
+   put "mouseUp,mouseDown,dragStart,dragMove" into gRendezvousScriptItems
+   put "global gStartDrag" & cr into  RENDEZVOUS_OBJECT_SCRIPT
+   repeat for each item I in gRendezvousScriptItems
+      put getHandlerFromStack( "DRAG_" & I) & cr after RENDEZVOUS_OBJECT_SCRIPT
+   end repeat
+   replace "DRAG_" with empty in  RENDEZVOUS_OBJECT_SCRIPT
+end init.RendezvousScript
+
+on Init.clearPropertySets
+   ops.setDebug ("00097 Init.clearPropertySets")
+   put "" into gErrorIndent
+   put the customPropertySets of this stack into tSets
+   filter tSets without "cREV"&"*"
+   repeat for each line L in tSets
+      set customProperties[L] of this stack to empty
+      if L is not empty then delete Variable tSets[L]
+      	      
+   end repeat
+   set the customPropertySets of this stack to tSets
+   set the customKeys of this stack to empty
+   set the currentSelection of this stack to empty
+   set the previousSelection of this stack to empty
+   set the clickedObject of this stack to empty
+   ops.emptyDataSet
+end Init.clearPropertySets
+
+on init.CustomPlayerName
+   ops.setDebug ("00098 init.CustomPlayerName")
+   put "" into gErrorIndent
+   put "init.CustomPlayerName" & cr after gDebug
+   ask "Who are you?"
+   if it is empty then exit init.CustomPlayerName
+   put it into gPlayerName
+end init.CustomPlayerName
+
+on init.DefinePlayerBaseDefaults tID,tParent
+   ops.setDebug ("00099 init.DefinePlayerBaseDefaults" && tID &&tParent )
+   put "" into gErrorIndent
+   put tID into gID
+   put 1 into gtype  --- base object
+   put gx into gx
+   put gy into gy
+   put tParent into gparent
+   put 2 into gbuild    --- type 1 is a base, don't build a base!
+   put 95 into gassembly
+   put 15 into gpopulation
+   put 15 into gproduction
+   put 15 into gprudence
+   put 16 into gcivilization
+   put 16 into gmotivation
+   put 16 into geducation
+   put 1 into glevel
+   put 99999999999 into glife
+   put "b_"& gID into gsendto
+   GameObject.setDataToPropertyGlobals
+end init.DefinePlayerBaseDefaults
+
+on init.FalseBools
+   ops.setDebug ("00100 init.FalseBools")
+   put "" into gErrorIndent
+   put false into bEnterText -- why 2 of the enter text?
+   put false into bSendToBool
+   put false into bPathToolBool
+   put false into bLockPopulation
+   put false into bLockProduction
+   put false into bLockPrudence
+   put false into bDrawStarPathBool -- fix this was a g
+   put false into bEnterTextBool   -- was a g
+end init.FalseBools
+
+on Init.Fields
+   ops.setDebug ("00101 Init.Fields")
+   put "" into gErrorIndent
+   put "baseproperties,baseList,defense,mobproperties,mobilepath,zoomlevel,statuslabel,gameturnlabel,MobileListField,MobileLevelLabel,MobilelifeLabel,SelectedGameObjectLabel,Label Field,ProductionTypeLabel,SendToLabel,SelectedBaseLabel,BaseListField,BaseLevelLabel,BaselifeLabel,BaseLocationLabel,BaseAssemblyLabel" into gRefreshingFields
+   repeat with i = 1 to number of fields of this stack 
+      put "" into gErrorIndent
+      put "" into field i of this stack
+   end repeat
+   put "" into gErrorIndent
+   -- UI Set up
+   repeat with i = 1 to 3 
+      put "" into gErrorIndent
+      put item i of gBaseManagementItems into field ("ManagerScrollLabel"&i)
+   end repeat
+   put gGameTurn into field "gameturnlabel"
+end Init.Fields
+
+on init.GameObjectGlobals
+   ops.setDebug ("00102 init.GameObjectGlobals")
+   put "" into gErrorIndent
+   put "" into gGameObjectTypeLabel
+   put "" into gGameObjectTypeData
+   put "" into gGameObjectTypePrefix
+   put "" into gGameObjectsSelectableItems
+   put "" into gGameObjectData
+   put "" into gGameObjectProperties
+   put "" into gGameObjectIndexLabel
+   put "" into gGameObjectIndex
+   put "" into gGameObjectPropertyIndex
+   put "" into gGameObjectPropertyGlobal
+   put 0 into gNumberOfGameObjects
+   put 0 into gGameObjectsCount
+   put false into bGameObjectIndexInvalid
+   put "" into gDefaultGameObjectGlobalsInit
+   put "" into gNumberOfGameObjects
+end init.GameObjectGlobals
+
+on init.GameObjectPropertyGlobalValues
+   ops.setDebug ("00103 init.GameObjectPropertyGlobalValues")
+   put "" into gErrorIndent
+   put"ID" into gID
+   put"type" into gtype
+   put"x" into gx
+   put"y" into gy
+   put"parent" into gparent
+   put"build" into gbuild
+   put"assembly" into gassembly
+   put"population" into gpopulation
+   put"production" into gproduction
+   put"prudence" into gprudence
+   put"civilization" into gcivilization
+   put"motivation" into gmotivation
+   put"education" into geducation
+   put"level" into glevel
+   put"life" into glife
+   put"sendto" into gsendto
+   put gID,gType,gX,gY,gParent,gBuild,gAssembly,gPopulation,gProduction,gPrudence,gCivilization,gMotivation,gEducation,gLevel,gLife,gSendTo into gGameObjectProperties
+   init.GameObjectPropertyItemOffsetEnumeration
+end init.GameObjectPropertyGlobalValues
+
+on init.GameObjectPropertyItemOffsetEnumeration 
+   ops.setDebug ("00104 init.GameObjectPropertyItemOffsetEnumeration")
+   put "" into gErrorIndent
+   put 1 into IDItem	--	ENUM item offset in gGameObjectProperties item list
+   put 2 into typeItem	--	ENUM item offset in gGameObjectProperties item list
+   put 3 into xItem	--	ENUM item offset in gGameObjectProperties item list
+   put 4 into yItem	--	ENUM item offset in gGameObjectProperties item list
+   put 5 into parentItem	--	ENUM item offset in gGameObjectProperties item list
+   put 6 into buildItem	--	ENUM item offset in gGameObjectProperties item list
+   put 7 into assemblyItem	--	ENUM item offset in gGameObjectProperties item list
+   put 8 into populationItem	--	ENUM item offset in gGameObjectProperties item list
+   put 9 into productionItem	--	ENUM item offset in gGameObjectProperties item list
+   put 10 into prudenceItem	--	ENUM item offset in gGameObjectProperties item list
+   put 11 into civilizationItem	--	ENUM item offset in gGameObjectProperties item list
+   put 12 into motivationItem	--	ENUM item offset in gGameObjectProperties item list
+   put 13 into educationItem	--	ENUM item offset in gGameObjectProperties item list
+   put 14 into levelItem	--	ENUM item offset in gGameObjectProperties item list
+   put 15 into lifeItem	--	ENUM item offset in gGameObjectProperties item list
+   put 16 into sendtoItem	--	ENUM item offset in gGameObjectProperties item list
+end init.GameObjectPropertyItemOffsetEnumeration 
+
+on init.GameObjectTypes 
+   ops.setDebug ("00105 init.GameObjectTypes")
+   put "" into gErrorIndent
+   put "base,defense,service,expand,offense,rendezvous,SendTo,map,centerXY,slider,UI" into gGameObjectTypes
+   put "base,defense,service,expand,offense,rendezvous" into gGameObjectSelectables
+   put gGameObjectSelectables into gSelectableGameObjects
+end init.GameObjectTypes
+
+on init.GlobalDefaults
+   ops.setDebug ("00106 init.GlobalDefaults")
+   put "" into gErrorIndent
+   Init.GlobalEmptyStrings
+   Init.ZeroIntegers
+   Init.FalseBools
+   Init.GameObjectGlobals
+   Init.GlobalNonZeroOrEmptyDefaultValues
+   Init.GameObjectPropertyItemOffsetEnumeration  -- result of a more complete DefineGlobalGetSetScripts
+end init.GlobalDefaults
+
+on init.GlobalEmptyStrings
+   ops.setDebug ("00107 init.GlobalEmptyStrings")
+   put "" into gErrorIndent
+   put "" into SCRIPT_GROUPText
+   put "" into gGameObjectIndexLabel
+   put "" into gGameTool
+   put "" into gInitGlobalScript
+   put "" into gGlobalItemsList
+   put "" into gGlobalItemsNames
+   put "" into gInitGlobalScript
+   put "" into gSelectedObjectIndex
+   put "" into gEmptypathGlobalsScript
+   put "" into gSelectedObject
+   put "" into gMobileObjectstList
+   put "" into gCenterObject
+   put "" into gBaseGlobalItems
+   put "" into gZeroedGameObjectData
+   put "" into gSelectedBase
+   put "" into gPlayerNames
+   put "" into gPlayerList
+   put "" into gBaseList
+   put "" into gLevelUp
+   put "" into gPlayerProperties
+   put "" into  gGameObjectIndexLabel
+   put "" into gBaseList
+   put "" into gDefaultBase
+   put "" into gPlayerBaseList
+   put "" into gMobileData
+   put "" into gMobileIndexLabel 
+   put "" into gMobilePathIndexLabel
+   put "" into gProwlerList
+   put "" into gRandomNumbersList
+end init.GlobalEmptyStrings
+
+on init.GlobalNonZeroOrEmptyDefaultValues
+   ops.setDebug ("00108 init.GlobalNonZeroOrEmptyDefaultValues")
+   put "" into gErrorIndent
+   put "statuslabel" into gStatusText	-- Saturday, January 27, 2024 3:29:50 PM
+   put "o"&"n" into gHandlerPrefix	-- Saturday, January 27, 2024 8:55:36 AM
+   put "e"&"n"&"d" into gHandlerSuffix	-- Saturday, January 27, 2024 8:55:36 AM
+   put item 1 the loc of group "Map" into gMapX
+   put item 2 the loc of group "Map" into gMapY
+   put gMapX,gMapY into gMapCenterXY
+   put "name,list,offset,current,default,empty,globals,get,set" & comma & gGameObjectProperties into gGetGameObjectPropertiesArguments
+   put "ID,type,x,y,parent,build,assembly,population,production,prudence,civilization,motivation,education,level,life,sendto" into gGameObjectProperties
+   put ",1,95,15,15,15,16,16,16,1,1,1,0" into gPlayerBaseDefaults
+   put Base.setzeroglobals("globals") into gGameObjectData
+   put "civilization,motivation,education" into gBaseStates
+   put "population,production,prudence" into gBaseGoals
+   put gBaseGoals & comma & gBaseStates into gBaseManagementItems
+   put "green,magenta,yellow,red,orange,cyan,darkorange,lightgreen,lightblue,pink,violet" into gColorItems
+   put 1 into gCurrentPlayerBaseLine
+   put "" into gPlayerNames
+   put "Player1" into gPlayerName
+   put "b_001" into  gGameObjectIndexLabel
+   put 1 into gGameTurn
+   put 1 into gCurrentRandomLine
+   put 1 into gZoomLevel
+   put 2 into gBaseDensityIndex
+   put 0 into gPlayerNumber
+   put 1 into gNumberOfPlayers
+   put 32 into gMapDensityStep 
+end init.GlobalNonZeroOrEmptyDefaultValues
+
+on Init.Graphics
+   ops.setDebug ("00109 Init.Graphics")
+   put "" into gErrorIndent
+   ClearGraphics
+   Init.SendToPath
+   Init.StateLines   
+end Init.Graphics
+
+on Init.FebruaryTenInits
+   ops.setDebug ("00000? Init.Graphics")
+   put "" into gBasedMobileObjectsList	-- Saturday, February 10, 2024 11:46:41 PM
+   put "" into gOffsetXY	-- Saturday, February 10, 2024 7:38:37 PM
+   put "" into gMobilePathData	-- Thursday, February 8, 2024 2:05:05 PM
+   put "" into gMobileTypeIndexLabel	-- Thursday, February 8, 2024 1:11:18 PM
+   put "" into gGameObjectIndexLabel	-- Thursday, February 8, 2024 1:10:42 PM
+   put "" into gMobileID	-- Thursday, February 8, 2024 1:10:14 PM
+   put "" into gMobileData	-- Thursday, February 8, 2024 1:08:44 PM
+   put 1 into gErrorDirection
+   put 1 into gErrorCursorPosition
+   put 0 into gErrorIndent
+   put "" into gMobileIndexLabel	-- Thursday, February 1, 2024 11:52:21 AM
+   put "" into gMobilePathIndexLabel	-- Thursday, February 1, 2024 11:51:55 AM
+   put "" into gRendezvousList	-- Wednesday, January 31, 2024 2:43:56 PM
+   put "" into gFilteredGlobalNames	-- Wednesday, January 31, 2024 2:19:29 PM
+   put "" into gFilterGlobalNames	-- Wednesday, January 31, 2024 2:19:20 PM
+   put false into bisMouseDown	-- Wednesday, January 31, 2024 1:02:20 PM
+   put "" into gSendToPathPoints	-- Wednesday, January 31, 2024 12:37:07 PM
+   put "" into gClickedObject	-- Wednesday, January 31, 2024 10:05:28 AM
+   put "" into gClickedTarget	-- Wednesday, January 31, 2024 9:15:48 AM
+   put "" into gClickedTarget	-- Tuesday, January 30, 2024 1:04:15 PM
+   put "" into SET_VALUE_OF_GAME_OBJECT_DATA	-- Tuesday, January 30, 2024 12:03:18 PM
+   put "" into gDeprecateHandlerPath	-- Tuesday, January 30, 2024 10:29:42 AM
+   put "" into gDate	-- Tuesday, January 30, 2024 10:29:17 AM
+   put "" into gDirSafeTime	-- Tuesday, January 30, 2024 10:29:06 AM
+   put "end" into gHandlerSuffix	-- Tuesday, January 30, 2024 2:23:09 AM
+   put "d,s,e,o" into gMobileTypesPrefixItems	-- Tuesday, January 30, 2024 12:51:01 AM
+   put "" into gMobileList	-- Tuesday, January 30, 2024 12:35:38 AM
+   put "true" into bToggleConsoleBool	-- Monday, January 29, 2024 11:41:29 AM
+   put "true" into bshowConsole	-- Monday, January 29, 2024 11:35:55 AM
+   put "UI.toggleConsole,UI.consoleWrite" into gDebugIgnoreItems	  
+   put "" into gSelectableGameObjects	-- Monday, January 29, 2024 8:46:05 AM
+   put "true" into bsilentConsole	-- Monday, January 29, 2024 8:09:30 AM
+end Init.FebruaryTenInits
+
+on init.January2024Globals
+   ops.setDebug ("00110 init.January2024Globals")
+   put "" into gErrorIndent
+   put "" into gDebugFilePath	-- Sunday, January 28, 2024 9:43:02 PM
+   put "" into gDefaultDirectory	-- Sunday, January 28, 2024 9:06:03 PM
+   put "" into gErrorSourceHandler	-- Sunday, January 28, 2024 9:03:56 PM
+   put "" into gGlobalUseList	-- Sunday, January 28, 2024 8:18:47 PM
+   put "" into gGameObjectBaseArray	-- Sunday, January 28, 2024 8:04:26 PM
+   put "" into gInitPropertyItemOffsetDefaultValues	-- Sunday, January 28, 2024 7:35:14 PM
+   put "" into gGameObjectBaseArray	-- Sunday, January 28, 2024 7:12:31 PM
+   put "" into gMobileAllDataArray	-- Sunday, January 28, 2024 4:29:31 PM
+   put "" into gGameObjectUndoData	-- Sunday, January 28, 2024 8:07:05 AM
+   put "" into gErrorSourceLabel	-- Sunday, January 28, 2024 4:33:06 AM
+   put "" into gBaseScriptText	-- Saturday, January 27, 2024 8:21:14 PM
+   put "" into SCRIPT_GROUPBlocksGroupScript	-- Saturday, January 27, 2024 5:53:20 PM
+   put "" into SCRIPT_GROUPBlockFilters	-- Saturday, January 27, 2024 5:46:56 PM
+   put "" into gNumberOfCommands	-- Saturday, January 27, 2024 5:16:19 PM
+   put "" into gBaseProwlers	-- Saturday, January 27, 2024 3:56:34 PM
+   put "" into gProwlersList	-- Saturday, January 27, 2024 3:55:04 PM
+   	   
+   	   
+   put "" into gBug	-- Saturday, January 27, 2024 3:27:43 PM
+   put "" into gSelectedObjectsHistory	-- Saturday, January 27, 2024 3:05:02 PM
+   put "" into gGameObjectDataKeys	-- Saturday, January 27, 2024 2:40:52 PM
+   put "" into gGlobalsList	-- Saturday, January 27, 2024 1:14:54 PM
+   put "" into gGlobalDefinitions	-- Saturday, January 27, 2024 12:45:10 PM
+   put "" into gGameObjectStatus	-- Saturday, January 27, 2024 12:09:22 PM
+   put "" into gUtilityFunctions	-- Saturday, January 27, 2024 11:36:39 AM
+   put 0 into gNumberOfButtons	-- Saturday, January 27, 2024 9:03:42 AM
+   	   
+   put "" into SCRIPT_GROUPBlocksGroupScript	-- Saturday, January 27, 2024 8:44:44 AM
+   put 1 into gNumberOfButtonRows	-- Saturday, January 27, 2024 8:35:23 AM
+   put "" into gSelectedObjectsHistory
+   put "" into gInserGlobalCardScript
+   put "" into gHandlerVistedCount
+   put "" into gHandlerEditCount
+   put "" into gCurrentEditIndexLabel
+   put "" into gEditHistoryList
+   put "" into gHandlerEditCount
+end init.January2024Globals
+
+on Init.NumberOfPlayers
+   ops.setDebug ("00111 Init.NumberOfPlayers")
+   put "" into gErrorIndent
+   put "initNumberOfPlayers" & cr after gDebug
+   ask "How Many Players (You vs. AI)" with 3
+   if it is empty or it > 10 or it < 1 then exit Init.NumberOfPlayers
+   put it into gNumberOfPlayers
+end Init.NumberOfPlayers
+
+on Init.PlayerBases
+   ops.setDebug ("00112 Init.PlayerBases")
+   put "" into gErrorIndent
+   --put "" into gDebug
+   set itemDel to comma
+   put "base" into gGameObjectTypeLabel
+   GameObject.ListType gGameObjectTypeLabel -- into gBaseList
+   --put list.base() into gBaseList
+   put floor((number of lines of gBaseList/gNumberOfPlayers)) into tDiv
+   set the randomseed to the seconds-(random(the seconds))
+   	   
+   put "" into gPlayerBaseItems
+   repeat with i = 1 to gNumberOfPlayers
+      put "" into gErrorIndent
+      put (i*tDiv)-floor(tDiv/2) into tMidLine
+      put line tMidLine of gBaseList & comma after gPlayerBaseItems
+   end repeat
+   	   
+   put 0 into gPlayerNumber
+   put "" into gErrorIndent
+   set itemDel to comma
+   repeat for each item gGameObjectIndexLabel in gPlayerBaseItems
+      put "" into gErrorIndent
+      GameObject.select gGameObjectIndexLabel
+      ops.emptyDataset	      
+      put "Base" && gGameObjectIndexLabel into gSelectedObject
+      ops.traceCPropset "Init.PlayerBases" 
+      set the currentSelection of this stack to gSelectedObject
+      add 1 to gPlayerNumber
+      put "Player" & gPlayerNumber into gPlayerName
+      	      
+      GameoBject.Data gGameObjectTypeLabel , gGameObjectIndexLabel
+      	      
+      put gID & cr after alldata
+      put gPlayerNumber into gParent  -- reset the parent to the selected gPlayerNumber
+      	      
+      -- NO REASON TO SET gID AFTER INIT OF OBJECT Gameobject.gID (char 3 to -1   of gGameObjectIndexLabel)
+      GameObject.type 1
+      GameObject.parent gPlayerNumber
+      GameObject.build 2    --- type 1 is a base, don't build a base!
+      GameObject.assembly 95 
+      GameObject.population 15  
+      GameObject.production 15  
+      GameObject.prudence 15  
+      GameObject.civilization 14  
+      GameObject.motivation 14  
+      GameObject.education 14   
+      GameObject.life 9999999999
+      GameObject.level 1
+      GameObject.sendTo gGameObjectIndexLabel
+      
+      --- copy the global properties to gGameObjectData
+      --GameObject.setDataToPropertyGlobals 
+      
+      init.PlayerDataArray gGameObjectIndexLabel -- create player base array
+      	      
+      ---- store the changes to the data in the object
+      -- GameObject.setPlayerBaseIndexData gGameObjectIndexLabel
+      if there is a graphic gGameObjectIndexLabel then 
+         set the base of graphic gGameObjectIndexLabel to gGameObjectData
+         -- pass the properties to easier to read array in the object
+         --GameObject.setGraphicObjectPropertiesToPropertyGLobals-- probably unecessary to pass that data to object 1-30-2024
+         set the foregroundColor of graphic  gGameObjectIndexLabel to (item gPlayerNumber of gColorItems)
+         set the backgroundColor of graphic  gGameObjectIndexLabel to (item gPlayerNumber of gColorItems)
+         set the refreshSize of graphic gGameObjectIndexLabel to 8
+         set the width of graphic  gGameObjectIndexLabel to 8
+         set the height of graphic  gGameObjectIndexLabel to 8
+      end if
+   end repeat
+end Init.PlayerBases
+
+on init.PlayerDataArray gGameObjectIndexLabel
+   ops.setDebug ("00113 init.PlayerDataArray" && gGameObjectIndexLabel )
+   put "" into gErrorIndent
+   --store the data among the player base list
+   set the customPropertySet of this stack to "PlayerData"
+   do "put the" && gPlayerName &&"of this stack into gPlayersArray"
+   put gPlayersArray["base"] into  gPlayersBaseArray
+   put gGameObjectData into gPlayersBaseArray[gGameObjectIndexLabel]
+   put gPlayersBaseArray into gPlayersArray
+   do  "set" && gPlayerName && "of this stack to gPlayersArray"
+   ops.emptyDataSet
+   -- store the data in the usual place because it changed from 0 parent  to Player(s)
+   set the customPropertySet of this stack to "BaseData"
+   do "put the "&& gGameObjectIndexLabel &&" of this stack into tArray"
+   put gGameObjectData into tarray
+   do "set the" && gGameObjectIndexLabel && "of this stack to tArray"
+   ops.emptyDataSet
+end init.PlayerDataArray
+
+on Init.RandomBases
+   ops.setDebug ("00114 Init.RandomBases")
+   put "" into gErrorIndent
+   set itemDel to comma
+   put item 1 to -4 of Base.setzeroGlobals("globals") into gZeroedGameObjectData 
+   put 0,0 into gBaseMapCenterXY
+   put 0 into gBaseMapCenterX
+   put 0 into gBaseMapCenterY
+   put 0 into gNumberOfGameObjects
+   set the customPropertySet of this stack to "BaseData"
+   set the customKeys of this stack to empty
+   --ops.emptyDataSet
+   set the randomSeed to the seconds
+   if gMapDensityStep < 32 then put 16 into gMapDensityStep
+   repeat with gx = (gMapX-1024) to gMapX+1024 step gMapDensityStep
+      repeat with gy = (gMapX-1024) to gMapX+1024 step gMapDensityStep
+         	   
+         put random(100) into rnd1
+         put random(100) into rnd2
+         put rnd1 & cr & rnd2 & cr after gRandomNumbersList
+         if rnd1 >88 and rnd2 > 88 then 
+            add 1 to gNumberOfGameObjects
+            --- do this before setting globals in the handler GameObject.createBase!!
+            put gZeroedGameObjectData into gGameObjectData -- fall back to zeroed index to have a place to put things	
+            put string.PadNumber(gNumberOfGameObjects,3) into gID
+            -- CREATE GRAPHIC OBJECT HERE
+            GameObject.createBase gID,gx,gy,"base"
+            add gx to gBaseMapCenterX
+            add gy to gBaseMapCenterY
+         end if
+      end repeat
+   end repeat
+   put getBaseMapCenterXY() into gBaseMapCenterXY
+   put "Init.RandomBases done @" && the long time& cr after gDebug
+end Init.RandomBases
+
+----INIT.RESERVEDWORDHANDLERS _EDITING @init.reservedWordHandlers_001
+on  init.reservedWordHandlers
+   ops.setDebug ("00001 Init.SendToPath")
+   put "" into gErrorIndent
+   put numtochar(111) & numtochar(110) into gHandlerPrefix --- the word o n
+   put numtochar(101) & numtochar(110) & numtochar(100) into gHandlerSuffix --- the word e n d
+end init.reservedWordHandlers
+
+on Init.SendToPath
+   ops.setDebug ("00115 Init.SendToPath")
+   put "" into gErrorIndent
+   if there is a graphic "SendTopath" then delete graphic "SendTopath"
+   set the style of the templategraphic to "polygon"
+   set the lineSize of the templategraphic to 2
+   set the foregroundColor of the templategraphic to lightblue 
+   set the visible of the templategraphic to false
+   set the customPropertySet of of the templategraphic to empty
+   create graphic "SendToPath"
+   set the sendToSource of graphic "SendToPath" to empty
+   set the sendToDestination of graphic "SendToPath" to empty
+end Init.SendToPath
+
+on Init.StateLines
+   ops.setDebug ("00116 Init.StateLines")
+   put "" into gErrorIndent
+   repeat for each item tStateName in gBaseStates
+      if there is not a graphic tStateName then UI.createStateLine tStateName
+   end repeat
+end Init.StateLines
+
+on Init.UnitSelectionImage
+   ops.setDebug ("00117 Init.UnitSelectionImage")
+   put "" into gErrorIndent
+   lock screen
+   set the width of the templateGraphic to 16
+   set the height of the templateGraphic to 16
+   set the linesize of the templateGraphic to 1
+   set the antialiased of the templateGraphic to true
+   set the style of the templateGraphic to "oval"
+   set the loc of the templateGraphic to -40,-40
+   set the foregroundColor of the templateGraphic to white
+   set the opaque of the templateGraphic to false
+   create graphic "temp"
+   set the backgroundColor of graphic "temp" to empty
+   set the opaque of the templateImage to false
+   set the width of the templateImage to 16
+   set the height of the templateImage to 16
+   set the alwaysBuffer of the templateImage to true
+   set the dontDither of the templateImage to true
+   set the showBorder of the templateImage to false
+   set the loc of the templateImage to 27,30
+   set the visible of the templateImage to true
+   create image "Select"
+   export snapshot from graphic "temp" to image "Select" 
+   	   
+   set the layer of image "Select" of this stack to bottom
+   unlock screen
+   delete graphic "temp"
+end Init.UnitSelectionImage
+
+on init.ZeroIntegers
+   ops.setDebug ("00118 init.ZeroIntegers")
+   put "" into gErrorIndent
+   put 0 into gMouseMoveCount
+   put 0 into gOffsetX
+   put 0 into gOffsetY
+   put 0 into gMapCenterX
+   put 0 into gMapCenterY
+   put 0 into gScrollOffsetX
+   put 0 into gScrollOffsetY
+   put 0 into gBaseMapCenterX
+   put 0 into gBaseMapCenterY
+   put 0 into gTurnLoopCount
+   put 0 into gTurnsToRun
+end init.ZeroIntegers
+
+on INIT_ALL_GLOBALS
+   ---ops.setDebug ("00119 INIT_ALL_GLOBALS") !! RECURSION
+   init.ErrorIndentSpace   --- ops.setDebug will cry without its globals!
+   put "" into gErrorIndent
+   put "" into gInitGlobalScript
+   put "" into gDefaultGameObjectGlobalsInit
+   init.GlobalDefaults
+   init.GameObjectTypes
+   init.RendezvousScript
+   init.January2024Globals  --- it's madness!1
+   Init.FebruaryTenInits  --- it gets worse!
+   init.ErrorIndent
+   init.DebugIgnoreItems
+   init.reservedWordHandlers --- for scripts to not get trapped by the collecters.
+end INIT_ALL_GLOBALS
+
+on initAPP
+   init.ErrorIndentSpace  --ops.setDebug will cry without its globals
+   ops.setDebug ("00120 initAPP")
+   
+   put "" into gErrorIndent
+   set itemDel to comma
+   put "initAPP" & cr into gDebug
+   set the cursor to empty
+   --cleanPropertySets --- disabled 01 24 2024
+   init.Graphics
+   Init.Fields
+   init.GlobalDefaults
+   initNewGlobals -- <--initNewGlobals  modified as we script by 'insertglobal' ALWAYS AT THE BOTTOM OF THE STACK
+   INIT_ALL_GLOBALS
+   	   
+   put setMapCenterXYFromObject("group"&& "map") into gMapCenterXY
+   Math.setMapDensityStep "Less"
+   	   
+end initAPP
+
+on initNewGame
+   init.ErrorIndentSpace  -- ops.setDebug will cry without it's globals
+   ops.setDebug ("00121 initNewGame")
+   put "" into gErrorIndent
+   Init.clearPropertySets
+   put "newGame" && the long seconds &cr into gDebug 
+   Init.NumberOfPlayers
+   Init.RandomBases
+   Init.PlayerBases
+   put true into bsilentConsole
+   put 1 into gPlayerNumber
+   put "Player" & gPlayerNumber into gPlayerName
+   filter lines of gBaseList without empty
+   put "base" into gGameObjectTypeLabel
+   Base.setProximities
+   	   
+   put false into bsilentConsole 
+   --init.CustomPlayerName -- this gets a real player 
+   Base.selectHomeWorld
+   string.writeFile "NewGame",(NewGameDebug&the seconds),gDebug
+end initNewGame
+
+on init.DebugIgnoreItems
+   -- noise in the console
+   put "quoted,fadefocus,gainfocus,UI.consoleWrite,gethandlerfromstack,UI.refreshScrollbarlocks"  into gDebugIgnoreItems
+   put ",mousedown,mouseUp,ops.emptyDataSet,UI.toggleConsole,UI.consoleWrite" after gDebugIgnoreItems
+   put ",UI.refreshScrollBarLocks,ops.emptydataset" after gDebugIgnoreItems
+   put ".UI.refreshStateLines" after gDebugIgnoreItems
+   ops.debugIgnore
+end init.DebugIgnoreItems
+
+on init.ErrorIndentSpace
+   put string.repeat(numtochar(32),256) into gErrorIndentSpace
+   put 0 into gErrorCursorPosition
+   put 1 into gErrorDirection
+   put "" into gErrorIndent
+end init.ErrorIndentSpace
+
+on init.ErrorIndent
+   ops.setDebug ("00122 initNewGlobals")
+   put string.repeat(numtochar(32),128) into gErrorIndentSpace
+end init.ErrorIndent
+
+on initNewGlobals
+put "" into RENDEZVOUS_OBJECT_SCRIPT	-- Sunday, February 11, 2024 1:39:54 AM
+   
+   ops.setDebug ("00122 initNewGlobals")
+   --- big space text line here
+   put "   " into gErrorIndentSpace
+   
+   	   
+   -- initNewGlobals ALWAYS MUST  BE THE END OF STACK SCRIPT
+end initNewGlobals
+
+------------------------------------------------------------ from GenericaProperties_03182026a
+
+on init
+   put  char 2 to -2 of word 2 of the long name of stack (the mainStack of this stack) into gStackFullPath
+   put word 2 the long ID of stack (the mainStack of this stack) into  gSourceDirectoryRoot
+   initNewGlobals
+   put "template" into gCurrentPropertySet
+   if the mouse is down and the mouseloc is within the rect of button 1 then chooseNewSourceFolder
+end init
+
+---BEGIN_GLOBAL_INIT---
+on initNewGlobals
+   put false into bBookSmart
+   put "" into cREV
+   put "" into gArrayRootLabel
+   put "" into gBottom
+   put "" into gButtonPropertyBoolItems
+   put "" into gButtonPropertyGeometryFields
+   put "" into gCardPropertySets
+   put "" into gChangedLabelsList
+   put "" into gCurrentArrayKeyHasGUI
+   put "" into gCurrentDescription
+   put "" into gCurrentFileList
+   put "" into gCurrentFilePath
+   put "" into gCurrentFileText
+   put "" into gCurrentFolderPath
+   put "" into gCurrentKeyIndex
+   put "" into gCurrentLabelArray
+   put "" into gCurrentLabelArrayKeys
+   put "" into gCurrentLabelsList
+   put "" into gCurrentOutline
+   put "" into gCurrentPropertiesStates
+   put "" into gCurrentPropertySet
+   put "" into gCurrentUIObjectIndex
+   put "" into gCurrentUITarget
+   put "" into gCurrrentFolder
+   put "" into gDebug
+   put "" into gFirstLevelArray
+   put "" into gFirstLevelArrayKey
+   put "" into gFirstLevelArraykeys
+   put "" into gFirstLevelArrayName
+   put "" into gFirstLevelFile
+   put "" into gFirstLevelFilePath
+   put "" into gFirstLevelFolder
+   put "" into gFirstLevelFolderArray
+   put "" into gFirstLevelFolderArrayLabel
+   put "" into gFirstLevelFolderPath
+   put "" into gFirstLevelSubArray
+   put "" into gFirstLevelSubArrayLabel
+   put "" into gFirstLevelText
+   put "" into gFoundGlobals
+   put "" into gFrameworkArray
+   put "" into gGameDescriptionsArray
+   put "" into gGlob
+   put "" into gGlobalInitBuild
+   put "" into gGlobalInitBuildHeader
+   put "" into gGlobalInitCatch
+   put "" into gGlobalList
+   put "" into gGlobalPrefixChar
+   put "" into gGlobalPrefixIgnoreList
+   put "" into gHandlerPrefix
+   put "" into gHandlerSuffix
+   put "" into gHeight
+   put "" into gInitBuild
+   put "" into gLabelsDescription
+   put "" into gLabelsDescriptionText
+   put "" into gLabelsFilesList
+   put "" into gLeft
+   put "" into gList
+   put "" into gNodeLabelsLabel
+   put "" into gNodeLabelsList
+   put "" into gObjectGeometryLabels
+   put "" into gObjectPropertyCheckBoxScript
+   put "" into gObjectPropertyFieldsScript
+   put "" into gRight
+   put "" into gRootLabelArray
+   put "" into gRootLabelArrayKeys
+   put "" into gRootLabelArrayKeysDisplay
+   put "" into gSecondLevelArray
+   put "" into gSecondLevelArrayKeyLabel
+   put "" into gSecondLevelArrayKeys
+   put "" into gSecondLevelArrayToggles
+   put "" into gSelectedFileArray
+   put "" into gSelectedFileArrayContentList
+   put "" into gSelectedFileArrayContentSelection
+   put "" into gSelectedFileArrayKeyIndex
+   put "" into gSelectedFileArrayKeys
+   put "" into gSelectedNode
+   put "" into gSelectedNodeArray
+   put "" into gSelectedNodeArrayKeys
+   put "" into gSelectedSourceDirectoryFile
+   put "" into gSelectedSourceDirectoryFileDescriptionNode
+   put "" into gSelectedUIArray
+   put "" into gSourceDirectoryFilesList
+   put "" into gSourceDirectoryFolders
+   put "" into gSourceDirectoryRoot
+   put "" into gStackFullPath
+   put "" into gStackScriptGlobalHeader
+   put "" into gTop
+   put "" into gUIPropertiesArrayList
+   put "" into gWidth
+   put "" into gWriteToDirectoryRoot
+   put "" into gX
+   put "" into gY
+   put "" into xField
+   put "" into yField
+   put "" into bShowExamples
+end initNewGlobals
+

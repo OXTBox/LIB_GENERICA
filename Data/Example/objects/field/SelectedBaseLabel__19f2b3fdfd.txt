@@ -1,0 +1,12 @@
+-- generic field script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): field "SelectedBaseLabel" (id 15803)
+-- handlers: 
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+--on mouseDown
+--   put line  1 of me into myBase
+--   set the currentSelection of this stack to "Base" && myBase
+--   GameObject.select "Base" && myBase
+--   zoomedmap
+--end mouseDown

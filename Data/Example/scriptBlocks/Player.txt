@@ -1,0 +1,17 @@
+-- script block: Player (handlers whose names start with "Player"; GAD scriptBlocks)
+-- source: GAD_WORKING_03_16_2026
+-- handlers: 1
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+------------------------------------------------------------ from GAD_WORKING_03_16_2026
+
+on playerPropertiesPick myPick
+   ops.setDebug ("00158 playerPropertiesPick" && myPick )
+   put "" into gErrorIndent
+   put myPick into gPlayerNumber
+   put "Player"&gPlayerNumber into gPlayerName
+   UpdateListFields myPick
+   set the hilitedLine of field "baselist" to 1
+   ListSelection "baseList"
+end playerPropertiesPick
+

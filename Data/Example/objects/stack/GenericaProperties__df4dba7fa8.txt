@@ -1,0 +1,1019 @@
+-- generic stack script
+-- source: GenericaProperties_03182026a
+-- used by 1 object(s): stack "GenericaProperties"
+-- handlers: openCard, init, make_example_sets, chooseWriteToFolder, writeOutlineToFiles, writeUIPropertiesArraysToFiles, sortNumericWorkAround, chooseNewSourceFolder, fillSourcerDirectoryFoldersField, rootContentListField, getAllCurrentGlobalValues, switchCustomPropertySet, quoted, fileTextField, deleteContentFromFile, ImportGamePropertyArrays, textfile.data, padNumber, emptyPuts, toggleShowExamples, ToggleHasGUI, sourceDirectoryFoldersFieldPick, sourceDirectoryFilesListFieldPick, labelContentFieldTextChanged, SelectedFileArrayContentListFieldPick, objectPropertyToggleChanged, gamePropertyDescriptFieldTextChanged, filterStackScriptForGlobals, objectPropertyDimensionChanged, updateUIPropertiesDataFromControls, addScriptsToObjectPropertyFields, script_Field_ObjectGeometry_returnInField, script_Field_ObjectGeometry_textChanged, generateButtonPropertyBoolButtons, generateFileArrayExample, SCRIPT_BUTTON_OBJECT_PROPERTY_TOGGLE_MouseUp, SCRIPT_CARD_BuildGlobalInit, SCRIPT_CARD_insertGlobal, initNewGlobals
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+global bBookSmart
+global cREV
+global gArrayRootLabel
+global gBottom
+global gButtonPropertyBoolItems
+global gButtonPropertyGeometryFields
+global gCardPropertySets
+global gChangedLabelsList
+global gCurrentArrayKeyHasGUI
+global gCurrentDescription
+global gCurrentFileList
+global gCurrentFilePath
+global gCurrentFileText
+global gCurrentFolderPath
+global gCurrentKeyIndex
+global gCurrentLabelArray
+global gCurrentLabelArrayKeys
+global gCurrentLabelsList
+global gCurrentOutline
+global gCurrentPropertiesStates
+global gCurrentPropertySet
+global gCurrentUIObjectIndex
+global gCurrentUITarget
+global gCurrrentFolder
+global gDebug
+global gFirstLevelArray
+global gFirstLevelArrayKey
+global gFirstLevelArraykeys
+global gFirstLevelArrayName
+global gFirstLevelFile
+global gFirstLevelFilePath
+global gFirstLevelFolder
+global gFirstLevelFolderArray
+global gFirstLevelFolderArrayLabel
+global gFirstLevelFolderPath
+global gFirstLevelSubArray
+global gFirstLevelSubArrayLabel
+global gFirstLevelText
+global gFoundGlobals
+global gFrameworkArray
+global gGameDescriptionsArray
+global gGlob
+global gGlobalInitBuild
+global gGlobalInitBuildHeader
+global gGlobalInitCatch
+global gGlobalList
+global gGlobalPrefixChar
+global gGlobalPrefixIgnoreList
+global gHandlerPrefix
+global gHandlerSuffix
+global gHeight
+global gInitBuild
+global gLabelsDescription
+global gLabelsDescriptionText
+global gLabelsFilesList
+global gLeft
+global gList
+global gNodeLabelsLabel
+global gNodeLabelsList
+global gObjectGeometryLabels
+global gObjectPropertyCheckBoxScript
+global gObjectPropertyFieldsScript
+global gRight
+global gRootLabelArray
+global gRootLabelArrayKeys
+global gRootLabelArrayKeysDisplay
+global gSecondLevelArray
+global gSecondLevelArrayKeyLabel
+global gSecondLevelArrayKeys
+global gSecondLevelArrayToggles
+global gSelectedFileArray
+global gSelectedFileArrayContentList
+global gSelectedFileArrayContentSelection
+global gSelectedFileArrayKeyIndex
+global gSelectedFileArrayKeys
+global gSelectedNode
+global gSelectedNodeArray
+global gSelectedNodeArrayKeys
+global gSelectedSourceDirectoryFile
+global gSelectedSourceDirectoryFileDescriptionNode
+global gSelectedUIArray
+global gSourceDirectoryFilesList
+global gSourceDirectoryFolders
+global gSourceDirectoryRoot
+global gStackFullPath
+global gStackScriptGlobalHeader
+global gTop
+global gUIPropertiesArrayList
+global gWidth
+global gWriteToDirectoryRoot
+global gX
+global gY
+global xField
+global yField
+global bShowExamples
+
+on openCard
+   init
+end openCard
+
+on init
+   put  char 2 to -2 of word 2 of the long name of stack (the mainStack of this stack) into gStackFullPath
+   put word 2 the long ID of stack (the mainStack of this stack) into  gSourceDirectoryRoot
+   initNewGlobals
+   put "template" into gCurrentPropertySet
+   if the mouse is down and the mouseloc is within the rect of button 1 then chooseNewSourceFolder
+end init
+
+
+on make_example_sets
+   if there is not a card "example" then create card "example"
+   go to card 1
+   put the customPropertySets of this card into tSets
+   repeat for each line tSet in tSets
+      set the customPropertySet of this card to tSet
+      set the customPropertySet of card "example" to tSet
+      set the customProperties of card "example" to the customProperties of this card
+   end repeat
+end make_example_sets
+
+on chooseWriteToFolder
+   put  char 2 to -2 of word 2 of the long name of stack (the mainStack of this stack) into gStackFullPath
+   set itemDel to "/"
+   answer folder "Select a folder to save the outline" with  item 1 to -2 of  gStackFullPath
+   if it is not empty then 
+      put it into gWriteToDirectoryRoot
+      set the write_folder_root of this stack to gWriteToDirectoryRoot
+      WriteOutlineToFiles gWriteToDirectoryRoot 
+   end if 
+end chooseWriteToFolder
+
+on writeOutlineToFiles tFolderPath
+   set itemDel to comma
+   if tFolderpath is not empty then put tFolderPath into gWriteToDirectoryRoot
+   put the customPropertySets of this card into gCardPropertySets
+   filter gCardPropertySets without "cREV"&"*"
+   repeat for each line L in gCardPropertySets
+      -- focus the property set
+      do "set the customPropertySet of this card to" && L
+      
+      -- truncate the name for folders
+      replace "game_" with empty in L
+      -- create a folder for the data
+      put gWriteToDirectoryRoot & "/" & L into gCurrentFolderPath
+      if there is not a folder gcurrentFolderPath then create folder gCurrentFolderPath
+      
+      -- the keys of the property set
+      put the customKeys of this card into tFilesArray
+      
+      --iterate over the keys
+      repeat for each line K in tFilesArray
+         -- collect the data held in the key
+         do "put the" && K &&"of this card into tArray"
+         put the keys of tArray into tArrayKeys
+         
+         filter lines of tArrayKeys without "description"
+         sort lines of tArraykeys numeric ascending
+         replace comma with cr in tArraykeys
+         put tab & k & cr after allKeys
+         put "" into tArrayTextContent
+         -- compile the data to a single variable
+         repeat for each line tIndex in tArrayKeys
+            put   tIndex & cr after allKeys
+            put tArray[tIndex] into tCleanText
+            replace "[" with empty in tCleanText
+            replace "]" with empty in tCleanText
+            set itemDel to "."
+            put item 2 to -1 of tCleanText into tCleanText
+            put tCleanText into tArray[tIndex]
+            put tCleanText & cr after tArrayTextContent
+            set the k of this card to tarray
+         end repeat
+         filter lines of tArrayTextContent without empty
+ 
+         put tArrayTextContent into tArray[tIndex]
+         -- write data to file
+         put "file:" & gCurrentFolderPath &"/" & K &".txt" into gCurrentFilePath
+         put tArrayTextContent into URL gCurrentFilePath
+         
+         put "file:" & gCurrentFolderPath &"/" & K &"_description.txt" into gCurrentFilePath
+         put tArray["description"] into URL gCurrentFilePath
+         put k && tArray["description"] & cr after allDescriptions
+      end repeat
+   end repeat
+   put allDescriptions into URL ("file:" & gWriteToDirectoryRoot &"/" & "property_descriptions.txt")
+   -- UI_Properties is an extra level of detail
+   writeUIPropertiesArraysToFiles
+end WriteOutlineToFiles
+
+
+
+
+
+
+
+on writeUIPropertiesArraysToFiles 
+   set the customPropertySet of this card to "Game_UI_Properties"
+   put the customKeys of this card into gUIPropertiesArrayList
+   repeat for each line tKey in gUIPropertiesArrayList
+      do "put the" && tKey &&"of this card into tSubArray"
+      
+      --put the keys of tSubArray & cr after tArrayTextContent
+      repeat for each line L in the keys of tSubArray
+         if there is not a folder (gCurrentFolderPath &"/" & tKey) then create folder (gCurrentFolderPath &"/" & tKey)
+         put "file:" & gCurrentFolderPath &"/" & tKey  &"/"&L &".txt" into gCurrentFilePath
+         put tSubArray[L] into gCurrentFileText
+         put gCurrentFileText into URL gCurrentFilePath 
+      end repeat
+   end repeat
+   
+end writeUIPropertiesArraysToFiles
+
+Function sortNumericWorkAround tListOfNumbers
+   put 0 into tLastNumber
+   
+   repeat while number of lines of tListOfNumbers > 0
+      put number of lines of tListOfNumbers into i
+      put line i of tListOfNumbers into tCheck
+      if n+1 > number of lines of tListofNumbers then put 0 into N
+      add 1 to n
+      put line n of tList into tCheck2
+      if tCheck > tLastNumber then 
+         put L &cr  after tNewList
+         put L into tLastNumber
+         next repeat
+      end if
+   end repeat
+   return tNewList
+end SortNumericWorkAround
+
+on chooseNewSourceFolder
+   put  char 2 to -2 of word 2 of the long name of stack (the mainStack of this stack) into gStackFullPath
+   set itemDel to "/"
+   answer folder "The source folder for data?" with  item 1 to -2 of  gStackFullPath
+   if it is not empty then 
+      put it into gSourceDirectoryRoot
+      set the source_folder_root of this stack to gSourceDirectoryRoot
+      FillSourcerDirectoryFoldersField gSourceDirectoryRoot 
+   end if 
+end chooseNewSourceFolder
+
+on fillSourcerDirectoryFoldersField tFolder
+   put tFolder into gSourceDirectoryRoot
+   set the customPropertySet of this stack to empty
+   set the Source_Directory_Root of this stack to gSourceDirectoryRoot
+   set the defaultFolder to gSourceDirectoryRoot
+   put the folders into gSourceDirectoryFolders
+   filter gSourceDirectoryFolders without ".."
+   sort gSourceDirectoryFolders
+   put gSourceDirectoryFolders into field "SourceDirectoryFoldersField"
+end FillSourcerDirectoryFoldersField
+
+on rootContentListField tFolder
+   put tFolder into gFirstLevelFolder
+   put gSourceDirectoryRoot & "/" & gFirstLevelFolder into gFirstLevelFolderPath
+   set the defaultFolder to gFirstLevelFolderPath
+   
+   put gFirstLevelFolderPath into field "pathfield"
+   put the files into gCurrentFileList
+   
+   sort gCurrentFileList
+   put gCurrentFileList into field "RootContentListField"
+   
+   if  number of lines of gCurrentFileList <>0 then 
+      put word 2 the selectedLine of field "RootContentListField" into N
+      if N is 0 or N is empty then put 1 into N
+      put line N of field "RootContentListField" into tFile
+      set the hilitedLine of field "RootContentListField" to N
+      fileTextField tFile
+   end if
+end RootContentListField
+
+on getAllCurrentGlobalValues
+   filter tScript with "global "&"*"
+   replace  "global" with empty in tScript
+   put "" into gGlobalList
+   repeat with i = 97 to 122
+      put filterStackScriptForGlobals(numtochar(i)) & cr after  gGlobalList
+   end repeat
+   filter lines of gGlobalList without empty
+   set the customPropertySet of this card to empty
+   put the global_prefix_ignore_list of this card into gGlobalPrefixIgnoreList
+   if gGlobalPrefixIgnoreList is not empty then
+      repeat for each line tIgnore in gGlobalPrefixIgnoreList
+         filter lines of gGlobalList without tIgnore& "*"
+      end repeat
+   end if
+   
+   sort gGlobalList
+   repeat for each line L in gGlobalList
+      do "put" && L &&"into tVar"
+      try
+         do "put L &&" && quoted(tVar)  &&"&& cr after tAllCurrentGlobalValues"
+      catch err
+         put err & cr after tAllCurrentGlobalValues
+      finally
+         do "put L &&" && tVar  &&"& cr after tAllCurrentGlobalValues"
+      end try
+   end repeat
+   put tAllCurrentGlobalValues
+end getAllCurrentGlobalValues
+
+
+on switchCustomPropertySet tCurrentPropertySet
+   put tCurrentPropertySet into gCurrentPropertySet
+end switchCustomPropertySet
+
+
+function quoted tWords
+   return quote & tWords & quote
+end quoted
+
+on fileTextField tFile
+   lock screen
+   put tFile into gFirstLevelFile
+   put "file:"& gFirstLevelFolderPath & "/" & gFirstLevelFile into gFirstLevelFilePath
+   put gFirstLevelFilePath into field "pathfield"
+   put URL  gFirstLevelFilePath  into gFirstLevelText
+   put gFirstLevelText into field "firstleveltextfield"
+   unlock screen
+end filetextfield
+
+on deleteContentFromFile tFile
+   lock screen
+   put tFile into gFirstLevelFile
+   put quoted("file:"& gSourceDirectoryRoot & "/" & gFirstLevelFile) into gFirstLevelFilePath
+   --put URL gFirstLevelFilePath into gFirstLevelText
+   put "" into gFirstLevelText
+   replace "/" with "\" in gFirstLevelFilePath
+   put gFirstLevelText into URL gFirstLevelFilePath
+   put gFirstLevelText into field "firstleveltextfield"
+   unlock screen
+end deleteContentFromFile
+
+
+--- the folder structure is game_name/game_property/game_property.txt & game_name/game_property/game_property_description.txt
+on ImportGamePropertyArrays
+   set the customPropertySets of this card to empty
+   
+   set the customPropertySet of this card to NewTemplate
+   set the customKeys of this card to empty
+   
+   -- iterate over the folders of directory 
+   repeat for each line gFirstLevelFolder in gSourceDirectoryFolders
+      put gSourceDirectoryRoot & "/" & gFirstLevelFolder into gFirstLevelFolderPath
+      
+      -- a prefix needs to be added to avoid interfering with the IDE properties
+      put "game_"&gFirstLevelFolder into gFirstLevelFolderArrayLabel
+      do "set the customPropertySet of this card to" &&  gFirstLevelFolderArrayLabel
+      
+      set the defaultFolder to gFirstLevelFolderPath
+      put gFirstLevelFolderPath into field "pathfield"
+      put the files into gCurrentFileList
+      --isolate the description text from the label lists
+      put gCurrentFileList into gLabelsFilesList
+      --filter lines of gLabelsFilesList with "*"&"labels"&"*"
+      filter lines of gLabelsFilesList without "*"&"_description"&"*"
+      put gCurrentFileList into gLabelsDescription
+      filter lines of gLabelsDescription with "*"&"_description"&"*"
+      if gLabelsDescription is not empty then put gLabelsDescription&  cr after allDescri
+      -- for now we only have these label files, what if more ?
+      put gLabelsFilesList into gCurrentFileList
+      filter lines of gCurrentFileList without empty
+      --- iterate over the files of the first level of folders
+      repeat for each line gFirstLevelFile in gCurrentFileList
+         --- get array named after the folder
+         
+         --- make sure to focus the property set 
+         do "set the customPropertySet of this card to" &&  gFirstLevelFolderArrayLabel
+         
+         --- get the content of the file
+         put "file:"& gFirstLevelFolderPath & "/" & gFirstLevelFile into gFirstLevelFilePath
+         put gFirstLevelFilePath into field "pathfield"
+         put URL  gFirstLevelFilePath  into gFirstLevelText
+         
+         --- remove extension
+         put char 1 to -5 of gFirstLevelFile into gFirstLevelArrayName
+         
+         --- remove "game_" header
+         set ItemDel to "_"
+         put gFirstLevelArrayName into gFirstLevelSubArrayLabel
+         
+         --- iterate over the text
+         put 0 into N
+         filter lines of gFirstLevelText without empty
+         repeat for each line L in gFirstLevelText
+            add 1 to N
+            --- move each line of text to an array  index
+            put L into gFirstLevelSubArrayLabel[padNumber(N,3)]
+         end repeat
+         
+         -- import the the description data and insert it amng the things here.
+         if gLabelsDescription is not empty then
+            put textfile.data(gFirstLevelFolderPath,gLabelsDescription) into gLabelsDescriptionText
+            put gLabelsDescriptionText into gFirstLevelSubArrayLabel["description"]
+            
+            -- lets try something special
+            set the customPropertySet of this card to description
+            put the customKeys of this card into tKeyList
+            put the game of this card into gGameDescriptionsArray
+            --put padNumber(number of lines of tKeyList+1,3) into tNewKey
+            replace "_description.txt" with empty in gLabelsDescription
+            replace "game_" with empty in gLabelsDescription
+            put gLabelsDescriptionText into gGameDescriptionsArray[gLabelsDescription]
+            set the game of this card to gGameDescriptionsArray
+            do "set the customPropertySet of this card to" &&  gFirstLevelFolderArrayLabel
+         end if
+         
+         -- store the array data in the custom property set of the card
+         if gFirstLevelArrayName is not empty and gFirstLevelSubArrayLabel is not empty then
+            do "set the" && gFirstLevelArrayName &&"of this card to gFirstLevelSubArrayLabel"
+         end if
+      end repeat
+   end repeat
+   put allDescri
+   set the customPropertySet of this card to empty
+end ImportGamePropertyArrays
+
+function textfile.data tPath,tFile
+   put "file:"& tPath & "/" & tFile into gCurrentFilePath
+   put gCurrentFilePath into field "pathfield"
+   put URL  gCurrentFilePath  into gCurrentFileText
+   return gCurrentFileText
+end textfile.data
+
+function padNumber tNum,tLen
+   put "padNumber("& tNum,tLen & ")" & cr after gDebug
+   put number of characters of tNum into tCount
+   repeat with i = 1 to tLen-tCount
+      put 0 before tNum
+   end repeat
+   return tNum
+end padNumber
+
+
+function emptyPuts
+   put the script of stack (the mainStack of this stack) into tScript
+   put tScript into tSubScript
+   put tScript into tier3
+   filter lines of tSubScript with "*put*"
+   Filter lines of tScript with "put*"
+   filter lines of tier3 with "*"&put&"*"
+   put tSubScript & cr & tScript & cr & tier3 into tScript
+   filter lines of tScript without "*into*"
+   filter lines of tScript without "*after*"
+   filter lines of tScript without "*before*"
+   filter lines of tScript without "--put*"
+   filter lines of tScript without "*--put*"
+   return tScript
+end emptyPuts
+
+on toggleShowExamples bShow
+   put bShow into bShowExamples
+   sourceDirectoryFoldersFieldPick (char 6 to -1 of gCurrentPropertySet)
+end toggleShowExamples
+
+on ToggleHasGUI tBool
+   put tBool into gCurrentArrayKeyHasGUI
+   set the visible of group  "UI_Object_Properties_Group" to tBool
+end ToggleHasGUI
+   
+on sourceDirectoryFoldersFieldPick tLabel
+   -- get the current property set
+   put "game_" & tLabel into gCurrentPropertySet
+   if bShowExamples then
+      set the customPropertySet of card "Example"  to gCurrentPropertySet
+      put the customKeys of  card "Example" into gSourceDirectoryFilesList
+   else
+      do "set the customPropertySet of this card to" && gCurrentPropertySet
+      put the customKeys of this card into gSourceDirectoryFilesList
+   end if
+   
+   put gSourceDirectoryFilesList into tList
+   replace "game_" with empty in tList
+   put tList into field "SourceDirectoryFilesListField"
+   
+   -- select the first line of the 'file list'
+   if number of lines of gSourceDirectoryFilesList >0 then 
+      set the hilitedLine of field "SourceDirectoryFilesListField" to 1
+      
+      -- display the selected file's content and pick the first line
+      put line 1 of gSourceDirectoryFilesList into gSelectedSourceDirectoryFile
+      -- pick line 1 of SourceDirectoryFilesListField
+      SourceDirectoryFilesListFieldPick gSelectedSourceDirectoryFile
+   end if
+   put "button,panel,art,menus,main_ui,labels,toggle,messages" into tUIItems
+   filter tUiItems with "*"&tLabel&"*"
+   
+end SourceDirectoryFoldersFieldPick 
+
+on sourceDirectoryFilesListFieldPick  tSelectedSourceDirectoryFile
+   lock screen
+   put "" into  field "GamePropertyDescriptionField"
+   
+   -- focus the current property set 
+   if bShowExamples then
+      set the customPropertySet of card "Example"  to gCurrentPropertySet
+      put the customKeys of  card "Example" into tKeys
+   else
+      do "set the customPropertySet of this card to" && gCurrentPropertySet
+      put the customKeys of this card into tKeys
+   end if
+   
+   
+   
+   -- the display name may not match the array name, lets find it
+   filter lines of tKeys with "*"&tSelectedSourceDirectoryFile
+   if number of lines of tKeys <>0 then
+      put line 1 of tKeys into gSelectedSourceDirectoryFile
+   else
+      put "" into gSelectedSourceDirectoryFile
+      exit SourceDirectoryFilesListFieldPick
+   end if
+   
+   -- get the selected  array 
+   if bShowExamples then
+      put the gSelectedSourceDirectoryFile of card "example" into gSelectedFileArray
+   else
+      do "put the" && gSelectedSourceDirectoryFile &&"of this card into gSelectedFileArray"
+   end if
+   
+   
+   
+   put the keys of gSelectedFileArray into gSelectedFileArrayKeys
+   sort gSelectedFileArrayKeys numeric ascending
+   put gSelectedFileArrayKeys into tKeys
+   
+   -- display the description information
+   if "description" is among the lines of gSelectedFileArrayKeys then 
+      put gSelectedFileArray["description"] into gCurrentDescription
+      put gCurrentDescription into field "GamePropertyDescriptionField"
+      unlock screen
+   end if
+   
+   put "" into gSelectedFileArrayContentList
+   --display the data / keys in the list field we only want the enumerated index for labels
+   repeat for each line L in gSelectedFileArrayKeys
+      if char 1 of L is a number then put gSelectedFileArray[L] & cr after gSelectedFileArrayContentList
+   end repeat
+   
+   filter lines of gSelectedFileArrayContentList without empty
+   put gSelectedFileArrayContentList into field "SelectedFileArrayContentListField"
+   
+   -- select line 1 of the data and pass it to the edit field
+   if gSelectedFileArrayContentList is not empty then
+      set the hilitedLine of field "SelectedFileArrayContentListField" to 1
+      put line 1 of gSelectedFileArrayContentList into gSelectedFileArrayContentSelection
+      send SelectLineOfFirstLevelTextField && 1 to field "SelectedFileArrayContentListField"
+   end if
+   unlock screen
+end SourceDirectoryFilesListFieldPick
+
+
+
+on labelContentFieldTextChanged tChangedText
+   if tChangedText is empty then put line 1 of  field "LabelContentField" into tChangedText
+   put word 2 the selectedLine of field "SelectedFileArrayContentListField" into tNLine
+   -- get the label of the content being edited
+   -- put tNline &".[" & tChangedText &"]" into gSelectedFileArrayContentSelection
+   put tChangedText into gSelectedFileArrayContentSelection
+   put padNumber(tNline,3) into gCurrentKeyIndex
+   
+   put gSelectedFileArrayContentSelection into gSelectedFileArray[gCurrentKeyIndex]
+   put the keys of gSelectedFileArray into gSelectedFileArrayKeys
+   sort gSelectedFileArrayKeys numeric ascending
+   put "" into gSelectedFileArrayContentList
+   filter lines of gSelectedFileArrayKeys without "description"
+   repeat for each line L in gSelectedFileArrayKeys
+      put gSelectedFileArray[L] & cr after gSelectedFileArrayContentList
+   end repeat
+   filter lines of gSelectedFileArrayContentList without empty
+   put gSelectedFileArrayContentList into field "SelectedFileArrayContentListField"
+   do "set the" && gSelectedSourceDirectoryFile &&"of this card to gSelectedFileArray"
+   
+   set the hilitedLine of field "SelectedFileArrayContentListField" to tNLine
+   unlock screen
+end LabelContentFieldTextChanged
+
+
+-- get the selected line of field "SelectedFileArrayContentListField"
+on SelectedFileArrayContentListFieldPick tLineNumber
+   -- we need to synch some items with the index of other items
+   put line tLineNumber of gSelectedFileArrayKeys into gSelectedFileArrayKeyIndex
+   
+   put line tLineNumber gSelectedFileArrayContentList into gSelectedFileArrayContentSelection
+end SelectedFileArrayContentListFieldPick
+
+on objectPropertyToggleChanged tButtonName,tBool
+   put the customPropertySet of this card into gCurrentPropertySet 
+   set the customPropertyset of this card to Game_UI_Properties
+   do "put the" && gSelectedSourceDirectoryFile &&"of this card into gSelectedUIArray"
+   put gSelectedUIArray[gSelectedFileArrayKeyIndex]  into gCurrentUITarget
+   --- going to save to matching index of labels put gSelectedUIArray[ gSelectedFileArrayKeyIndex ]
+   
+   -- put the toggle value into the toggle bool
+   do "put" && tBool &&"into g" &tButtonName
+   put "visible,opaque,showName,autoHilite,sharedHilite,traversalOn,showFocusBorder,default,disabled,threeD,showBorder" into gButtonPropertyBoolItems
+   put "" into gCurrentPropertiesStates
+   -- iterate over all the toggle buttons  and collect their state into the array
+   repeat for each item I in gButtonPropertyBoolItems
+      do  "put  hilite of button" &&  I  &"checkBox into g" & I
+      put "put hilite of button" && i &"checkBox into gCurrentUITarget[" & I &"]" & cr after  tCom
+      put I && hilite of button (i &"checkbox") && cr after gCurrentPropertiesStates
+   end repeat
+   do tcom
+   put gCurrentPropertiesStates into gSelectedUIArray[gSelectedFileArrayKeyIndex]
+   do "set the" && gSelectedSourceDirectoryFile &&"of this card to gSelectedUIArray" 
+   
+   set the customPropertySet of this card to gCurrentPropertySet
+end objectPropertyToggleChanged
+
+on gamePropertyDescriptFieldTextChanged
+   set itemDel to"_"
+   do "put the" && gSelectedSourceDirectoryFile &&"of this card into gSelectedFileArray"
+   put   "gSelectedFileArray[" & quoted("description") &"]" into gSelectedSourceDirectoryFileDescriptionNode
+   put line 1 to -1 of  field "GamePropertyDescriptionField" into gCurrentDescription
+   -- store the changed description on the current customPropertySet array
+   do "put  gCurrentDescription into" &&  gSelectedSourceDirectoryFileDescriptionNode
+   do "set the" && gSelectedSourceDirectoryFile &&"of this card to gSelectedFileArray"
+   set itemDel to comma
+end GamePropertyDescriptFieldTextChanged
+
+
+function filterStackScriptForGlobals tGlobalPrefix
+   if tGlobalPrefix is an integer then put numtochar(tGlobalPrefix) into tGlobalPrefix
+   if tGlobalPrefix is  empty then put "g" into tGlobalPrefix
+   put tGlobalPrefix into gGlobalPrefixChar
+   put the script of this stack into tScript
+   put tScript into tGlobals
+   filter tGlobals with "global " &"*"
+   --filter tscript without "global " &"*"
+   repeat with i = 1 to 64
+      if  i < 10 or i > 11  or i <> 46 or i <> 95 then
+         replace numtochar(i) with cr in tScript
+      end if
+   end repeat
+   filter lines of tScript without empty
+   repeat with i = 91 to 255
+      if i < 97 or i > 122 and i <> 46 and i <> 95 then
+         replace  numtochar(i) with cr in tScript
+      end if
+   end repeat
+   filter lines of tScript with "*"&gGlobalPrefixChar&"*"
+   filter lines of tScript with gGlobalPrefixChar&"*"
+   put "" into gFoundGlobals
+   repeat with i = number of lines of tScript down to 1
+      put line i of tscript into tGlobalName
+      filter  lines of tScript  without tGlobalName
+      -- only matching character for globals gGlob DO_SOMETHING etc
+      if chartonum(char 1 of tGlobalName) = chartonum(char 1 of gGlobalPrefixChar) then
+         if chartonum(char 2 of tGlobalName) >= 65 and chartonum(char 2 of tGlobalName) <=  90 then 
+            put tGlobalName & cr after gFoundGlobals
+         end if
+      end if
+   end repeat
+   filter lines of gFoundGlobals without empty
+   sort gFoundGlobals
+   return gFoundGlobals
+end filterStackScriptForGlobals
+
+on objectPropertyDimensionChanged tFocusedField
+   put the customPropertySet of this card into gCurrentPropertySet 
+   set the customPropertyset of this card to Game_UI_Properties
+   put "width,height,x,y,left,top,right,bottom" into gButtonPropertyGeometryFields
+   set itemDel to comma
+   lock screen
+   lock messages
+   repeat for each item I in gButtonPropertyGeometryFields
+      do "put field"&& quote & I&   "field" &quote&&"into g" &I
+   end repeat
+   switch tFocusedField
+      case "widthField"
+         put gLeft+gWidth into gRight
+         put gRight into field "rightField"
+         put gWidth/2 into gX
+         put gX into field "xField"
+         break
+      case "heightField"
+         put gTop+gHeight into gBottom
+         put gBottom into field "bottomField"
+         put gHeight/2 into gY
+         put gY into field "xField"
+         break
+         
+      case "leftField"
+      case "rightField"
+         put  gRight - gLeft  into gWidth
+         put gWidth into field "wdithfield"
+         put gLeft+gWidth /2 into gX
+         put gX into field "xField"
+         break
+         
+      case "topField"
+      case "bottomField"
+         put gTop - gBottom into gHeight
+         put gHeight into field "heightfield"
+         put gTop+gHeight /2 into gY
+         put gY into field "yField"
+         break
+   end switch
+   unlock messages
+   unlock screen
+   updateUIPropertiesDataFromControls
+   set the customPropertySet of this card to gCurrentPropertySet
+end objectPropertyDimensionChanged
+
+on updateUIPropertiesDataFromControls
+   if gSelectedFileArrayKeyIndex is empty then exit updateUIPropertiesDataFromControls
+   put "" into gCurrentPropertiesStates
+   --- update the globals after making changes
+   -- iterate over the geometry fields
+   repeat for each item I in gButtonPropertyGeometryFields
+      do "put field"&& quote & I&   "field" &quote&&"into g" &I
+      do "put" && quoted(I) && "&& g"&I  && "&cr after gCurrentPropertiesStates" 
+   end repeat
+   
+   -- iterate over all the toggle buttons  and collect their state into the array
+   repeat for each item I in gButtonPropertyBoolItems
+      do  "put  hilite of button" &&  I  &"checkBox into g" & I
+      put "put hilite of button" && i &"checkBox into gCurrentUITarget[" & I &"]" & cr after  tCom
+      put I && hilite of button (i &"checkbox") && cr after gCurrentPropertiesStates
+   end repeat
+   do tcom
+   
+   if gSelectedFileArrayKeyIndex is not empty then
+      put gCurrentPropertiesStates into gSelectedUIArray[gSelectedFileArrayKeyIndex]
+      do "set the" && gSelectedSourceDirectoryFile &&"of this card to gSelectedUIArray" 
+   end if
+end updateUIPropertiesDataFromControls
+
+on addScriptsToObjectPropertyFields
+   put "" into gObjectPropertyFieldsScript
+   put "returnInField,textChanged" into tHandlers
+   set itemDel to comma
+   repeat for each item  I in tHandlers
+      put the script of this stack into tScript
+      put "script_field_objectgeometry_"&i  into tHandler
+      put lineOffset(tHandler,tScript) into tStart
+      put lineOffset("end"&&tHandler,tScript) into tEnd
+      put line tStart to tEnd of tScript &cr& cr after gObjectPropertyFieldsScript
+   end repeat
+   
+   put "width,height,x,y,left,top,right,bottom" into gObjectGeometryLabels
+   replace "script_field_objectgeometry_" with empty in gObjectPropertyFieldsScript
+   repeat for each item I in gObjectGeometryLabels
+      do "set the script of field " && quote &I &"field" &quote && "to gObjectPropertyFieldsScript"
+   end repeat
+end addScriptsToObjectPropertyFields
+
+---BEGIN_FIELD_SCRIPTS
+on script_Field_ObjectGeometry_returnInField
+   put line 1 of me into me
+   put "" after line 1 of me
+end Script_Field_ObjectGeometry_returnInField
+
+on script_Field_ObjectGeometry_textChanged
+   if line 1 of me is not a number then put 1 into me
+   ObjectPropertyDimensionChanged (the short name of me)
+end Script_Field_ObjectGeometry_textChanged
+---END_FIELD_SCRIPTS
+
+on generateButtonPropertyBoolButtons
+   put "visible,opaque,showName,autoHilite,sharedHilite,traversalOn,showFocusBorder,default,disabled,threeD,showBorder" into gButtonPropertyBoolItems
+   put "mouseUp" into tHandlers
+   repeat for each item  I in tHandlers
+      put the script of this stack into tScript
+      put "script_button_object_property_toggle_"&i  into tHandler
+      put lineOffset(tHandler,tScript) into tStart
+      put lineOffset("end"&&tHandler,tScript) into tEnd
+      put line tStart to tEnd of tScript &cr& cr after gObjectPropertyCheckBoxScript
+   end repeat
+   replace "script_button_object_property_toggle_" with empty in gObjectPropertyCheckBoxScript
+   set the script of the templateButton to gObjectPropertyCheckBoxScript
+   
+   set the style of the templateButton to "checkbox"
+   set the width of the templatebutton to 140
+   set the left of the templateButton to the right of button "fieldresizerbutton"+10
+   set the height of the templateButton to 24
+   put 0 into N
+   
+   repeat for each item I in gButtonPropertyBoolItems
+      set the Name of the templatebutton to I&"CheckBox"
+      set the label of the templateButton to I
+      set the top of  the templateButton to bottom of group "objectgeometrygroup" +(24*N)
+      add 1 to N
+      if there is a button ( I&"CheckBox") then delete button ( I&"CheckBox")
+      create Button
+   end repeat
+end GenerateButtonPropertyBoolButtons
+
+on generateFileArrayExample
+   set the customPropertySet of this card to "game_files"
+   put the game_files of this card into tthing
+   put "LivecodeScript,mp3,ogg,png,points,jpg,txt" into tEx
+   set itemDel to comma
+   put 0 into n
+   repeat for each item i in tEx
+      add 1 to n
+      put padNumber(n,3) into tPref
+      -- put N&".[" & I & "]" into tText
+      put I into tText
+      put tText into tThing[tPref]
+   end repeat
+   set the game_files of this card to tThing
+end generateFileArrayExample
+
+
+
+--BEGIN_BUTTON_SCRIPTS---
+on SCRIPT_BUTTON_OBJECT_PROPERTY_TOGGLE_MouseUp tButtonName,tBool
+  ObjectPropertyToggleChanged (the short name of me), (the highlite of me)
+end SCRIPT_BUTTON_OBJECT_PROPERTY_TOGGLE_MouseUp
+---END_BUTTON_SCRIPTS---
+
+
+
+---BEGIN_CARD_SCRIPTS---
+
+
+on SCRIPT_CARD_BuildGlobalInit
+   put cr & the script of this stack into tScript
+   filter tScript with "global "&"*"
+   replace  "global" with empty in tScript
+   repeat with i = 97 to 122
+      put filterStackScriptForGlobals(numtochar(i)) & cr after  gGlobalList
+   end repeat
+   filter lines of gGlobalList without empty
+   set the customPropertySet of this card to empty
+   put the global_prefix_ignore_list of this card into gGlobalPrefixIgnoreList
+   if gGlobalPrefixIgnoreList is not empty then
+      repeat for each line tIgnore in gGlobalPrefixIgnoreList
+         filter lines of gGlobalList without tIgnore& "*"
+      end repeat
+   end if
+   
+   put "o"&"n"&&"init"&"NewGlobals" & cr into gGlobalInitBuild  
+   sort gGlobalList
+   repeat for each line L in gGlobalList
+      filter gGlobalInitCatch without L
+      put "" into gGlobalInitCatch
+      switch (char 1 of l)
+         case "b" 
+            put "put false into" && L into  gGlobalInitCatch
+            break
+         case "i"
+            put "put 1 into" && L into  gGlobalInitCatch
+            break
+         case "f"
+            put "put 0 into" && L into  gGlobalInitCatch
+            break
+         case "s"
+            put "put" && quote &L & quote &&"into" && L into gGlobalInitCatch
+            break
+      end switch
+      
+      if gGlobalInitCatch is empty then 
+         put tab & "put" && quote & quote &&  "into" && L & cr after gGlobalInitBuild
+      else
+         put tab & gGlobalInitCatch& cr after gGlobalInitBuild
+      end if
+      put "global" && L & cr after gStackScriptGlobalHeader
+   end repeat
+   
+   put "e"&"n"&"d init"&"NewGlobals" & cr & "---END OF STACK SCRIPT---" after gGlobalInitBuild
+   
+   
+   -- find the init new globals handler at the end of the stack script
+   put the script of this stack into tScript
+   put  "---BEGIN_GLOBAL_INIT---" into gGlobalInitBuildHeader
+   filter lines of tScript without  gGlobalInitBuildHeader
+   put gGlobalInitBuildHeader & cr before gGlobalInitBuild
+   put lineOffset("on"&&"init"&"NewGlobals",tscript)-1 into tInitHandlerLine
+   if tInitHandlerLine <1 then 
+      put cr after line -1 of tInitHandlerLine
+      put -1 into tInitHandlerLine
+   end if
+   
+   -- find the first handler or function in the stack script
+   put lineoffset("on"&space,tScript) into tFirsthandlerLine
+   put lineOffset("function",tScript) into tFirstFunctionLine
+   if tFirsthandlerLine < tFirstFunctionLine then
+      put tFirsthandlerLine into tScriptStartLineNumber
+   else
+      put tFirstFunctionLine into tScriptStartLineNumber
+   end if
+   -- combine the global header with the rest of the script
+   put gStackScriptGlobalHeader & cr &  line tScriptStartLineNumber to tInitHandlerLine of tScript into tScriptWithHeader
+   -- include the new global init handler at the end of the script
+   put  tScriptWithHeader & cr & gGlobalInitBuild into tFinalStackScript
+   
+   -- save it to file in case things go bad
+   put "file:"&specialFolderPath("Documents")&"/stack_script.livecodescript" into tFile
+   put tFinalStackScript into URL tFile
+   
+   set the script of this stack to tFinalStackScript
+end SCRIPT_CARD_BuildGlobalInit
+
+
+
+on SCRIPT_CARD_insertGlobal
+   --ops.setDebug "insertGlobal"
+   put the clipboardData["text"] into tCheck
+   if tWord is among the items of the globalNames then exit SCRIPT_CARD_insertGlobal
+   if number of lines of tCheck = 1 and number of words of tCheck = 1 and number of items of tCheck = 1 then 
+      put the script of this stack into tScript
+      put tab &"-"&"-"&& the short date && the long time into tSuffix
+      put "global" && tCheck &tSuffix& cr before tScript
+      SET the script of this stack to tScript
+      send BuildGlobalInit to this card in 100 milliseconds
+   end if
+end SCRIPT_CARD_insertGlobal
+---END_CARD_SCRIPTS---
+
+
+---BEGIN_GLOBAL_INIT---
+on initNewGlobals
+   put false into bBookSmart
+   put "" into cREV
+   put "" into gArrayRootLabel
+   put "" into gBottom
+   put "" into gButtonPropertyBoolItems
+   put "" into gButtonPropertyGeometryFields
+   put "" into gCardPropertySets
+   put "" into gChangedLabelsList
+   put "" into gCurrentArrayKeyHasGUI
+   put "" into gCurrentDescription
+   put "" into gCurrentFileList
+   put "" into gCurrentFilePath
+   put "" into gCurrentFileText
+   put "" into gCurrentFolderPath
+   put "" into gCurrentKeyIndex
+   put "" into gCurrentLabelArray
+   put "" into gCurrentLabelArrayKeys
+   put "" into gCurrentLabelsList
+   put "" into gCurrentOutline
+   put "" into gCurrentPropertiesStates
+   put "" into gCurrentPropertySet
+   put "" into gCurrentUIObjectIndex
+   put "" into gCurrentUITarget
+   put "" into gCurrrentFolder
+   put "" into gDebug
+   put "" into gFirstLevelArray
+   put "" into gFirstLevelArrayKey
+   put "" into gFirstLevelArraykeys
+   put "" into gFirstLevelArrayName
+   put "" into gFirstLevelFile
+   put "" into gFirstLevelFilePath
+   put "" into gFirstLevelFolder
+   put "" into gFirstLevelFolderArray
+   put "" into gFirstLevelFolderArrayLabel
+   put "" into gFirstLevelFolderPath
+   put "" into gFirstLevelSubArray
+   put "" into gFirstLevelSubArrayLabel
+   put "" into gFirstLevelText
+   put "" into gFoundGlobals
+   put "" into gFrameworkArray
+   put "" into gGameDescriptionsArray
+   put "" into gGlob
+   put "" into gGlobalInitBuild
+   put "" into gGlobalInitBuildHeader
+   put "" into gGlobalInitCatch
+   put "" into gGlobalList
+   put "" into gGlobalPrefixChar
+   put "" into gGlobalPrefixIgnoreList
+   put "" into gHandlerPrefix
+   put "" into gHandlerSuffix
+   put "" into gHeight
+   put "" into gInitBuild
+   put "" into gLabelsDescription
+   put "" into gLabelsDescriptionText
+   put "" into gLabelsFilesList
+   put "" into gLeft
+   put "" into gList
+   put "" into gNodeLabelsLabel
+   put "" into gNodeLabelsList
+   put "" into gObjectGeometryLabels
+   put "" into gObjectPropertyCheckBoxScript
+   put "" into gObjectPropertyFieldsScript
+   put "" into gRight
+   put "" into gRootLabelArray
+   put "" into gRootLabelArrayKeys
+   put "" into gRootLabelArrayKeysDisplay
+   put "" into gSecondLevelArray
+   put "" into gSecondLevelArrayKeyLabel
+   put "" into gSecondLevelArrayKeys
+   put "" into gSecondLevelArrayToggles
+   put "" into gSelectedFileArray
+   put "" into gSelectedFileArrayContentList
+   put "" into gSelectedFileArrayContentSelection
+   put "" into gSelectedFileArrayKeyIndex
+   put "" into gSelectedFileArrayKeys
+   put "" into gSelectedNode
+   put "" into gSelectedNodeArray
+   put "" into gSelectedNodeArrayKeys
+   put "" into gSelectedSourceDirectoryFile
+   put "" into gSelectedSourceDirectoryFileDescriptionNode
+   put "" into gSelectedUIArray
+   put "" into gSourceDirectoryFilesList
+   put "" into gSourceDirectoryFolders
+   put "" into gSourceDirectoryRoot
+   put "" into gStackFullPath
+   put "" into gStackScriptGlobalHeader
+   put "" into gTop
+   put "" into gUIPropertiesArrayList
+   put "" into gWidth
+   put "" into gWriteToDirectoryRoot
+   put "" into gX
+   put "" into gY
+   put "" into xField
+   put "" into yField
+   put "" into bShowExamples
+end initNewGlobals
+---END OF STACK SCRIPT---

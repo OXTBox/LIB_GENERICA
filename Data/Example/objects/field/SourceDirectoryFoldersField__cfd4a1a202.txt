@@ -1,0 +1,26 @@
+-- generic field script
+-- source: GenericaProperties_03182026a
+-- used by 1 object(s): field "SourceDirectoryFoldersField" (id 1003)
+-- handlers: mouseDown, mouseStillDown, arrowKey, viewCurrentLine
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseDown
+   viewCurrentLine
+end mouseDown
+
+on mouseStillDown
+   viewCurrentLine
+end mouseStillDown
+
+on arrowKey
+   send viewCurrentLine to me in 30 milliseconds
+   pass arrowkey
+end arrowkey
+
+on viewCurrentLine
+   put word 2 the selectedLine of me into N
+   put line N  of me into tSelectedText
+   set the customPropertySet of this card to empty
+   set the arrayRoot of this card to tSelectedText
+   SourceDirectoryFoldersFieldPick tSelectedText
+end viewCurrentLine

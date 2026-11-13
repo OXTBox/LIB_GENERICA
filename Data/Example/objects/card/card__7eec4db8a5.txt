@@ -1,0 +1,115 @@
+-- generic card script
+-- source: GAD_WORKING_03_16_2026
+-- used by 1 object(s): card "" (id 1002)
+-- handlers: insertGlobal, appendInitNewGlobals, extractUI
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+----INSERTGLOBAL _EDITING @CARDSCRIPT_insertGlobal_001
+on insertGlobal
+ops.setDebug "insertGlobal"
+    put the clipboardData["text"] into tCheck
+if tWord is  among the items of the globalNames then exit insertGlobal
+if number of lines of tCheck = 1 and number of words of tCheck = 1 and number of items of tCheck = 1 then 
+    put the script of this stack into tScript
+	put tab &"-"&"-"&& the short date && the long time into tSuffix
+    put "global" &tab& tCheck &tSuffix& cr before tScript
+SET the script of this stack to tScript
+appendInitNewGlobals tCheck
+end if
+end insertGlobal
+
+on appendInitNewGlobals tNewGlobal
+ops.setDebug "appendInitNewGlobals"
+ask "Set init value of"&&tNewGlobal
+put it into tInitVal
+ops.setDebug "appendInitNewGlobals"&&tNewGlobal&&tInitVal
+put the script of this stack into tScript
+put "o"&"n" into gHandlerPrefix
+put "e"&"n"&"d" into gHandlerSuffix
+put lineOffset(gHandlerPrefix && "initNewGlobals",tScript) into tStart
+put lineOffset(gHandlerSuffix && "initNewGlobals",tScript) into tEnd
+put tStart,tEnd
+put tab &"-"&"-"&& the long date && the long time into tSuffix
+if tInitVal is empty or tInitVal is not a number then
+put line 1 to tStart of tScript & cr&"put" && quote& tInitVal &quote &&"into"&&tNewGlobal &tSuffix& cr & line tStart+1 to -1 of tScript into tmodifiedScript
+else
+put line 1 to tStart of tScript & cr&"put" && tInitVal &&"into"&&tNewGlobal &tSuffix& cr & line tStart+1 to -1 of tScript into tmodifiedScript
+end if
+SET the script of this stack to tmodifiedScript
+end appendInitNewGlobals
+
+
+
+on extractUI
+   put the short name of this stack into tStackName
+   put specialFolderPath("Documents")&"/UIEX" into tFolder
+   if there is not a folder tFolder then create folder tFolder
+   put tFolder & "/" & tStackName into tStackFolder
+   if there is not a folder tStackFolder then create folder tStackFolder
+   
+   repeat with i = 1 to number of controls of this card
+      put the long ID of control i of this card into tID
+      put word 1 of tID into tObjType
+      put tStackFolder &"/"  &tObjType into tObjFolder
+      if there is not a folder tObjFolder then create folder tObjFolder
+      put tObjFolder  & "/" &tObjType&"_Scripts" into tSFolder
+      
+      put the script of tID into tScript
+      if tScript is not empty then 
+         if there is not a folder tSFolder then create folder tSFolder
+         put tScript into URL ("file:" & tSFolder & "/" & tShorty & "_script.txt")
+      end if 
+      put tID &cr into tPropOut
+      put the short name of control i of this card into tShorty
+      put the properties of tID into tPropertiesA
+      repeat for each line tProp in the keys of tPropertiesA
+         put tPropertiesA[tProp] into tPropVal
+         put tProp &"=" & tPropVal & cr after tPropOut
+      end repeat
+      put tPropOut into URL ("file:" & tObjFolder & "/" & tShorty & ".txt")
+   end repeat
+   
+   put tStackFolder & "/Stack_Properties" into tPFolder
+   if there is not a folder tPFolder then create folder tPFolder
+   
+   put the customPropertySets of this stack into tPSets
+   repeat for each line PSet in tPSets
+      put  tPFolder & "/" & Pset into tPsetFolder
+      
+      set the customPropertySet of this stack to PSet
+      put the customKeys of this stack into tKeys
+      repeat for each line K in tKeys
+         put tPsetFolder &"/" & K into tKeyFolder
+         
+         try
+            if the K of this stack is not empty or (the number of lines of the keys of (the k of this stack) > 0) then 
+               
+               if there is not a folder tKeyFolder then create folder tKeyFolder
+               if the number of lines of the keys of (the k of this stack) > 0 then
+                  put (the k of this stack)  into tArrayA
+                  repeat for each line KK in the keys of tArrayA 
+                     put tKeyFolder & "/" & KK into subKeyFolder
+                     if there is not a folder subKeyFolder then create folder subKeyFolder
+                     put tArrayA[KK] into URL ("file:" & subKeyFolder &"/" & Kk &".txt")
+                  end repeat
+               else
+                  put (the k of this stack)into URL ("file:" & tKeyFolder &"/" & K &".txt")
+               end if
+               --put jsonExport(the K of this stack) into URL ("file:" & tKeyFolder &"/" & K &".txt")
+            end if
+         end try
+      end repeat
+   end repeat
+   
+   set the customPropertySet of this stack to empty
+   put the customKeys of this stack into tKeys
+   put  tPFolder & "/" &  "empty" into tPsetFolder
+   repeat for each line K in tKeys
+      put tPsetFolder &"/" & K into tKeyFolder
+      if there is not a folder tKeyFolder then create folder tKeyFolder
+      try
+         if the K of this stack is not empty  then put jsonExport(the K of this stack) into URL ("file:" & tKeyFolder &"/" & K &".txt")
+         
+      end try
+   end repeat
+end extractUI
