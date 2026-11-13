@@ -1,8 +1,8 @@
 # Data/Example: generic scripts (INACTIVE)
 
-Made by `tools/extract_script_examples.py` from: GAD_WORKING_03_16_2026, GenericaProperties_03182026a.
+Made by `LIB_SCRIPTBLOCKS/tools/harvest_blocks.py` from: GAD_WORKING_03_16_2026, GenericaProperties_03182026a.
 Plain text: none of these is the script of anything until applied on purpose
-(`livecode/Generica_ScriptEditor.livecodescript`: Check, then Apply).
+(`LIB_SCRIPTBLOCKS/livecode/ScriptBlocks.livecodescript`: Check, then Apply).
 
 | file | kind | handlers | users |
 |---|---|---|---|
