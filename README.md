@@ -17,6 +17,7 @@ Analysis: `../LIB_GAD/GENERICA_TEMPLATE.md`.
 | `livecode/lib_generica.livecodescript` | loader for Vibecode3D, xt3d and any stack (`start using` it; engine-free) |
 | `python/generica.py` | the same in Python (xtalk_py, tools); `python3 -I python/generica.py sets THEME [BASE]` |
 | `tools/extract_from_harvest.py` | a Generica stack's XTJSON harvest -> a set (how `galactica` was made) |
+| `Data/Example/` | generic script examples (GAD's script blocks, generic object scripts), INACTIVE text; made and edited with **LIB_SCRIPTBLOCKS** |
 
 ## A label file
 
