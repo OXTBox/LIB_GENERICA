@@ -1,0 +1,8 @@
+# list: toolbar_tool_labels
+# category: game_toolbar
+# about: List of labels for buttons or item menus of the developer toolbar.
+Dev
+Console
+Rawkey
+Status
+AddGlobal

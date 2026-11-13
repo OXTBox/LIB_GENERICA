@@ -1,0 +1,5 @@
+# list: game_main_ui_labels
+# category: game_main_ui
+# about: A list of the labels used to describe the main sections of the user interface. "Drawingboard", "Toolbar" , "Maze", "Scoreboard" type of designations
+Sector View
+Display:

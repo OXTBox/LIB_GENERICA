@@ -1,0 +1,9 @@
+# list: game_unit_ownership_labels
+# category: game_unit_ownership
+# about: A list of labels which are displayed in game to  describe the ownership of of game objects. (X vs. O, red vs. blue, etc)
+Computer 
+unowned
+you
+the *
+* %
+Satellites

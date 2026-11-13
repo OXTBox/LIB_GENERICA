@@ -1,0 +1,6 @@
+# list: game_message_new_unit
+# category: game_messages
+# about: 
+[You have completed construction of the first of the new % class of starships! 
+It is now ready for launch from the stardock at @.
+]

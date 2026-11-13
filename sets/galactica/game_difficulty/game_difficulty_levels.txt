@@ -1,0 +1,8 @@
+# list: game_difficulty_levels
+# category: game_difficulty
+# about: A list of difficulty levels ranging from Hardest to Easiest.
+Expert
+Good
+Average
+Passable
+Novice

@@ -1,0 +1,4 @@
+# list: file_info
+# category: game_languages
+# about: Localized language file .
+This file provides support for playing Galactica: Anno Dominari in American English

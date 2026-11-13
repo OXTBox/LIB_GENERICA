@@ -1,0 +1,7 @@
+# list: game_chat_labels
+# category: game_chat
+# about: A list of chat commands available in the chat interface
+Message will repeat until Turn 
+all players
+---- chatting with * ----
+To *

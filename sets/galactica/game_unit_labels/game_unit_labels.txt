@@ -1,0 +1,26 @@
+# list: game_unit_labels
+# category: game_unit_labels
+# about: A list of the labels displayed in game to identify the various units.
+Satellite
+Courier
+Colony
+Traveler
+Rama
+Hawk
+Falcon
+Riviel
+Raven
+Valkyrie
+Wolven
+Avenger
+Banshee
+Talon
+Tempest
+Scorpion
+Vindicator
+Cobra
+Viper
+Warhawk
+Barracuda
+Shark
+Hellion

@@ -1,0 +1,4 @@
+# list: game_prefs
+# category: game_preferences
+# about: The label of the preferences file. Seems like there should be more here eh?
+[Galactica Prefs]

@@ -1,0 +1,8 @@
+# list: game_events_text
+# category: game_events
+# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_events_text.
+You secured the node % from #!
+You lost the node % when * breached it.
+* secured the node % from #.
+You have contained the last of the anomaly at % in a sweep against #!
+Your last specimens at % were lost in a sweep against *.

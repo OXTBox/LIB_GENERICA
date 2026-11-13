@@ -1,0 +1,8 @@
+# list: game_scripts
+# category: game_scripts
+# about: A list of scripts being used by the application.
+Expert.lua
+Good.py
+Average.livecodescript
+Passable.bat
+Novice.js

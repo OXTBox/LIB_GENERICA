@@ -1,0 +1,6 @@
+# list: game_message_defeat
+# category: game_messages
+# about: 
+[Your ships have been destroyed, your planets conquered.
+As you are taken prisioner, you realize you have no choice but to admit defeat. You have little chance now of becoming emperor.
+But it is written ÒSomeday, * will returnÑstronger than everÉÓ]

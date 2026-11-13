@@ -1,0 +1,10 @@
+# list: game_files
+# category: game_files
+# about: The files list...currently a folder containing more folders each labeled after the file extensions of their content. The files_labels.txt should
+LivecodeScript
+mp3
+ogg
+png
+points
+jpg
+txt

@@ -1,0 +1,6 @@
+# list: game_edit_menu_redo_drag
+# category: game_menus
+# about: Menu Object Labels and their associated texts
+Redo Drag Copy
+Redo Drag Move
+Redo Drag Drop

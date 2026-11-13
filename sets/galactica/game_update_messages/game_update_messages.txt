@@ -1,0 +1,8 @@
+# list: game_update_messages
+# category: game_update_messages
+# about: A list of messages displayed while game turn events are being processed.
+
+Processing:Computer Player
+Processing:Player Actions
+Checking:Turn Completion
+Reading:

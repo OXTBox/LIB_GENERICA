@@ -1,0 +1,10 @@
+# list: game_edit_menu_redo_standard
+# category: game_menus
+# about: 
+CanÕt Redo
+Redo
+Redo Cut
+Redo Copy
+Redo Paste
+Redo Clear
+Redo Typing

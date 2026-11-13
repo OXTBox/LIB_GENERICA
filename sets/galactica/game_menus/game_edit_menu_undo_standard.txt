@@ -1,0 +1,10 @@
+# list: game_edit_menu_undo_standard
+# category: game_menus
+# about: 
+CanÕt Undo
+Undo
+Undo Cut
+Undo Copy
+Undo Paste
+Undo Clear
+Undo Typing

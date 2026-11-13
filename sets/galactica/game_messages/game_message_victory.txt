@@ -1,0 +1,6 @@
+# list: game_message_victory
+# category: game_messages
+# about: 
+Victory is yours
+You have conquered the entire Galaxy, defeating all who stood in your way. You relax for a while as the people celebrate your victory. 
+But you know that, in time, other usurpers will arise!]

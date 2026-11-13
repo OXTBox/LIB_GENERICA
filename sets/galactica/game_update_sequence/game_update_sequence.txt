@@ -1,0 +1,6 @@
+# list: game_update_sequence
+# category: game_update_sequence
+# about: A list of events that define the sequence of the game loop
+Computer Players
+Human Players
+Objects in Galaxy

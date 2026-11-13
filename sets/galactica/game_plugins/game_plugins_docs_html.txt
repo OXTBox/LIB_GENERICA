@@ -1,0 +1,6 @@
+# list: game_plugins_docs_html
+# category: game_plugins
+# about: 
+How to Plugins?
+I don't know
+Not sure how this one works

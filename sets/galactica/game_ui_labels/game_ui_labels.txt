@@ -1,0 +1,36 @@
+# list: game_ui_labels
+# category: game_ui_labels
+# about: A list of the labels displayed by the UI elements of the game.
+Turn 
+Host
+ days
+Time Left: 
+at 
+debris at 
+Star 
+Ship 
+Fleet 
+Wormhole 
+Unknown 
+ via starlane
+waitingÉ
+PAUSED
+POSTED
+quitting
+closing
+ (patrol)
+Rendezvous 
+Group
+New
+FULL
+Open
+Join
+Rejoin
+checking...
+Not Found
+Yes
+No
+Defeated
+Online
+Offline
+Update

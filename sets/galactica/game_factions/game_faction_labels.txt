@@ -1,0 +1,12 @@
+# list: game_faction_labels
+# category: game_factions
+# about: A list of labels used for the various factions in the game.
+Faction
+Alliance
+Federation
+Axis
+Coalition
+Cooperative
+Combine
+Confederation
+Pact

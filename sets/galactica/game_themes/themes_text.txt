@@ -1,0 +1,6 @@
+# list: themes_text
+# category: game_themes
+# about: A list of labels of the available (or planned) UI themes.
+Light Mode
+Dark Mode
+Custom

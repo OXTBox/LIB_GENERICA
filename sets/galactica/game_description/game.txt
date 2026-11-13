@@ -1,0 +1,33 @@
+# list: game
+# category: game_description
+# about: 
+List of labels displayed in the user "info panel"
+A list of events that define the sequence of the game loop
+A list of labels of the available (or planned) UI themes.
+A list of messages displayed when there is a failure to communicate.
+A list of the labels displayed in game to identify the various units. 
+List of labels for buttons or item menus of the developer toolbar.
+A list of difficulty levels ranging from Hardest to Easiest.
+A list of scripts being used by the application.
+A list of the labels used to describe the main sections of the user interface. "Drawingboard", "Toolbar" , "Maze", "Scoreboard" type of designations
+A list of the labels displayed by the UI elements of the game.
+A list of image labels used in the game, might be "muncher","ghost","coin","powerUp", etc, file names might change but this will be the guide to what is expected
+Line itemized copyright information presumably required by the copyright offices to establish ownership of a product. Use it or lose it, i guess.
+The game property labels displayed in game when a unit is selected. These properties will be manipulated or evaluated by the player and/or during game sequence events. Health,Mana,Strength, Score, 
+A list of the unit types that the player can interact with . 
+The files list...currently a folder containing more folders each labeled after the file extensions of their content. The files_labels.txt should
+A list of text strings displayed to the user when events occur in the game.
+A list of labels used for the various factions in the game.
+List of credit details to be displayed, designer, developers, publishers, contact info, all that jazz.
+Hail Ceasar? Maybe for Tarot Cards? Risk-y business?
+A list of the labels of the important sections of the tutorial.
+A list of the music track labels used in the game, which may differ from filename.
+A list of labels that describe the objects in the game whose visibility can be toggled.
+A list of button labels used in the game. The game might be "Icons only" but somewhere the user will be quickly instructed to the purpose of the button is by the text listed here.
+A list of chat commands available in the chat interface
+Localized language file .
+A list of messages displayed while game turn events are being processed.
+The label of the preferences file. Seems like there should be more here eh?
+A list of labels which are displayed in game to  describe the ownership of of game objects. (X vs. O, red vs. blue, etc) 
+List of labels for the locations in the game.
+A list of labels for the sounds used by the application.

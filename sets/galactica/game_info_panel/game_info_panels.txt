@@ -1,0 +1,10 @@
+# list: game_info_panels
+# category: game_info_panel
+# about: List of labels displayed in the user "info panel"
+
+Ship Navigation:
+Ship Information:
+System Information:
+Ships in System:
+Fleet Navigation:
+Ships in Fleet:

@@ -1,0 +1,4 @@
+# list: game_store_purchase_url
+# category: game_store
+# about: 
+[http://www.vendornation.com/*ws4d-db-query-QuickShow?ga003]

@@ -1,0 +1,7 @@
+# list: game_build_menu
+# category: game_menus
+# about: 
+Satellite
+Courier
+Colony
+Battleship

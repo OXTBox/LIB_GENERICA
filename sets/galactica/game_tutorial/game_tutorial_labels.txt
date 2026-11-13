@@ -1,0 +1,9 @@
+# list: game_tutorial_labels
+# category: game_tutorial
+# about: A list of the labels of the important sections of the tutorial.
+Objective
+Pickups
+Enemies
+Score
+Loss
+Victory

@@ -1,0 +1,6 @@
+# list: game_message_level_up
+# category: game_messages
+# about: 
+[Your scientists on % have invented a new type of starship drive!
+Any future starships developed there will use this new, level $ technology drive.
+]

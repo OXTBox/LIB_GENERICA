@@ -1,0 +1,16 @@
+# list: game_credits_text
+# category: game_credits
+# about: List of credit details to be displayed, designer, developers, publishers, contact info, all that jazz.
+Ed Zavada
+Sacred Tree Software
+3.[4285 Burton Rd.
+North Garden. VA 22959
+USA]
+434-963-7924
+
+
+
+
+ezavada@annoDominari.com
+http://www.annoDominari.com/
+

@@ -1,0 +1,7 @@
+# list: game_unit_types
+# category: game_unit_types
+# about: A list of the unit types that the player can interact with .
+starship
+fleet
+colony
+rendezvous point

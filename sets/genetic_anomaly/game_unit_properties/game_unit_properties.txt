@@ -1,0 +1,20 @@
+# list: game_unit_properties
+# category: game_unit_properties
+# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_unit_properties.
+Vector:
+Position:
+Research:
+Agent Training:
+Mutation
+Agents
+Research
+Samples:
+Damage:
+Speed:
+Power:
+Build:
+Nothing selected on the detector map
+Staging point selected.
+Reposition it by dragging, or delete it by hitting the <delete> key.
+DISBANDED
+Send to:

@@ -1,0 +1,13 @@
+# list: roman_numerals
+# category: game_symbols
+# about: Hail Ceasar? Maybe for Tarot Cards? Risk-y business?
+ I
+ II
+ III
+ IV
+ V
+ VI
+ VII
+ VIII
+ IX
+ X

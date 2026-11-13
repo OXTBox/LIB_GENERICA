@@ -1,0 +1,7 @@
+# list: game_map_view_toggle
+# category: game_map_view_toggles
+# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_map_view_toggle.
+Detector Map
+Node
+Agent
+Squad

@@ -1,0 +1,7 @@
+# list: game_map_view_toggle
+# category: game_map_view_toggles
+# about: A list of labels that describe the objects in the game whose visibility can be toggled.
+Galaxy Map
+System 
+Ship 
+Fleet 

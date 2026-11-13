@@ -1,0 +1,72 @@
+# list: game_button_labels
+# category: game_button
+# about: A list of button labels used in the game. The game might be "Icons only" but somewhere the user will be quickly instructed to the purpose of the button by the text listed here.
+
+Show/Hide Spacelanes
+Show/Hide Starships
+Show/Hide Names in Map
+Show/Hide Map Grid
+Zoom In <+>
+Zoom Out <->
+Selected Item Name
+Star System Information <I>
+Ships in Star System <S>
+
+
+
+
+Ship Navigation
+Add Waypoint to Course <A>
+Edit Selected Waypoint <E>
+Starship Call In <C>
+Repeat Course <R>
+Delete Waypoint from Course <del>
+
+Delete Entire Course <clear>
+Starship Course Memory <M>
+
+Starship's Course
+Look at Selected Starship <ret>
+
+Scrap Selected Starship <del>
+Starships and Fleets in System
+Slider Lock
+Infrastructure Growth Effort
+Ship-building Effort
+Technological Research Effort
+
+Set Sliders Even
+Show/Hide Balloon Help
+End Your Turn <T>
+Display Tech Levels <3>
+Display Defensive Strength <4>
+Display Eminent Danger
+Display Growth Effort <6>
+Display Shipbuilding Effort <7>
+Display Tech Research Effort <8>
+Display Production Levels <2>
+Zoom to Fit <0>
+
+
+Edit Destination for New Starships <E>
+Starship Information (not used)
+
+
+
+
+Ship Patrol Mode <P>
+Ship Hunt Mode <H>
+Display Ownership Only <1>
+List of Events from Last Turn <E> show/hide
+Ships in Fleet <S>
+Fleet Navigation <N>
+Starships and Groups in Fleet
+Exchange starship(s) between fleets <X>
+Starships and Groups in Fleet
+Starships in Group
+Exchange starship(s) between groups <X>
+Type of ship to build (choose from menu)
+
+
+
+

@@ -1,0 +1,6 @@
+# list: game_edit_menu_undo_Drag
+# category: game_menus
+# about: 
+Undo Drag Copy
+Undo Drag Move
+Undo Drag Drop

@@ -1,0 +1,6 @@
+# list: game_message_victory
+# category: game_messages
+# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_message_victory.
+The anomaly is contained.
+Every node is secured.
+You have won.

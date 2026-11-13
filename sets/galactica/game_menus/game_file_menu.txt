@@ -1,0 +1,8 @@
+# list: game_file_menu
+# category: game_menus
+# about: 
+Galacticaª
+Save Game As:
+Choose a Game:
+Save Game:
+New Galaxy

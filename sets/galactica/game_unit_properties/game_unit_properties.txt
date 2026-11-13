@@ -1,0 +1,20 @@
+# list: game_unit_properties
+# category: game_unit_properties
+# about: The game property labels displayed in game when a unit is selected. These properties will be manipulated or evaluated by the player and/or during game sequence events. Health,Mana,Strength, Score,
+Course:
+Position:
+Tech:
+Ship Completion:
+Growth
+Ships
+Tech
+Population:
+Damage:
+Speed:
+Power:
+Build:
+Nothing Selected in Starmap
+14.[Rendezvous point selected.
+Reposition it by dragging, or delete it by hitting the <delete> key.]
+SCRAPPED
+Send to:

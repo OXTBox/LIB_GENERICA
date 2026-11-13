@@ -1,0 +1,5 @@
+# list: game_edit_menu_alt
+# category: game_menus
+# about: 
+Redo Course Change
+Redo Resource Allocation

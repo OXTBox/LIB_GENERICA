@@ -1,0 +1,8 @@
+# list: game_copyright_info
+# category: game_copyright
+# about: Line itemized copyright information presumably required by the copyright offices to establish ownership of a product. Use it or lose it, i guess.
+Galacticaª: AD Language Plug-in
+English, US
+1996 - 2003
+
+

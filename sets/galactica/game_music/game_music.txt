@@ -1,0 +1,4 @@
+# list: game_music
+# category: game_music
+# about: A list of the music track labels used in the game, which may differ from filename.
+[Galactica Music]

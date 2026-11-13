@@ -1,0 +1,25 @@
+# list: game_store_payment_window_text1
+# category: game_store
+# about: 
+N/A
+$
+.
+Please enter the quantity in the box to the left.
+ copy of
+ copies of
+ registration code
+ registration codes
+ for
+ Galacticaª: Anno Dominari will be 
+shipped to you on CDROM.
+shipped to you on CDROMs.
+emailed to you. You will not receive a CDROM.
+We need your email address to send you the registration code.
+We need your shipping address so we can send the CDROM(s) to you.
+We need the name of the credit card holder if you want to pay by credit card.
+We need the card number if you want to pay by credit card.
+We need the credit card's expiration date if you want to pay by credit card.
+CA
+Since are a California resident, you must pay sales tax. I've checked the "CA Sales Tax" box for you.
+Since are not a California resident, you don't need to pay sales tax. I've unchecked "CA Sales Tax" box for you.
+You've entered a Country to ship to, but "Continental US" is your shipping option. Please fix this.

@@ -1,0 +1,8 @@
+# list: game_faction_labels
+# category: game_factions
+# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_faction_labels.
+Lab
+Consortium
+Institute
+Strain
+Collective

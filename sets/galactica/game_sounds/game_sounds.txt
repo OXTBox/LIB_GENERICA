@@ -1,0 +1,7 @@
+# list: game_sounds
+# category: game_sounds
+# about: A list of labels for the sounds used by the application.
+car
+eaten
+scream1
+scream2

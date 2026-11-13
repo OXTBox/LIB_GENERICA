@@ -1,0 +1,5 @@
+# list: game_edit_menu
+# category: game_menus
+# about: 
+Undo Course Change
+Undo Resource Allocation

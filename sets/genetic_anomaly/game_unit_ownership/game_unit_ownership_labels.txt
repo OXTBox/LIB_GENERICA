@@ -1,0 +1,9 @@
+# list: game_unit_ownership_labels
+# category: game_unit_ownership
+# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_unit_ownership_labels.
+Rogue lab
+uncontained
+you
+the *
+* %
+Probes

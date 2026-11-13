@@ -1,0 +1,48 @@
+# list: game_events_text
+# category: game_events
+# about: A list of text strings displayed to the user when events occur in the game.
+You took the star system % from #!
+You lost the star system % when * attacked it.
+* took the star system % from #.
+You have crushed the last resistance on the system % in a battle against #!
+Your last defenders of the system % died bravely in a battle against *.
+* crushed the last resistance on the system % in a battle against #.
+You destroyed an enemy starship % belonging to # in a battle at @.
+You lost a starship % in battle with * at @.
+* destroyed a starship % that belonged to # in a battle at @.
+You have defeated # in a battle at @, destroying the fleet %!
+You lost your fleet %, wiped out in a battle with * at @.
+* defeated # in a battle at @, destroying the fleet %.
+You have received a message from #.
+* received a message from #.
+Your starship % at @ is awaiting your orders.
+Your fleet % at @ is awaiting your orders.
+Your newly built starship % is in the system @, ready for launch.
+You have completed construction of a new % class starship, tech level $, at @.
+* just built a new % class starship, tech level $, at @.
+Your scientists on % have discovered a new tech level $ starship drive.
+Scientists on %, working for *, have discovered a new tech level $ starship drive.
+Your system % has achieved tech level $.
+* has achieved tech level $ on %.
+You have colonized the uninhabited star system % !
+* colonized the uninhabited star system %.
+Your new fleet has begun to form at @. Please name it.
+* has begun forming a new fleet at @.
+Your fleet % at @ is now completely formed.
+* has completed formation of the fleet % at @.
+You have been defeated.
+* has been defeated.
+You have conquered the Galaxy!!
+* has conquered the Galaxy!
+While you won the battle at @, your fleet % lost $ ships.
+While you lost the battle at @, you destroyed $ enemy ships.
+* lost $ ships from their fleet % in the battle against # at @.
+While you won the battle at %, you lost $ ships in that system.
+You destroyed $ enemy ships in your attack on the star system %.
+* lost $ ships defending the star system % from an attack by #.
+The star system % surrendered.
+Your star system % surrendered to *.
+The star system %, formerly held by #, surrendered to *.
+Your ship % has been completely repaired.
+All ships in your fleet % have been completely repaired.
+Please name your new colony and set its production levels.

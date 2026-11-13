@@ -1,0 +1,15 @@
+# list: game_login_errors
+# category: game_login_errors
+# about: A list of messages displayed when there is a failure to communicate.
+You cannot join this game because it is full.
+A player has already joined the game using that name.
+The host rejected the join request because the name was unacceptable.
+That name is already in use by another player, please choose another.
+You cannot join this game because your client version doesn't match the host. Please choose a different game.
+Your password is incorrect. Please try again.
+Your login name is incorrect. Please try again.
+You must have a registered copy of Galactica to play in this game.
+You cannot join as a player because this is a private game. You might be able to join as a spectator.
+You have lost your connection to the host. Please close this game and rejoin.
+11.[Sorry, an error occured.
+Error code ]

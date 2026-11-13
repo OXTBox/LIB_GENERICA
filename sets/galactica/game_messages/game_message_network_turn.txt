@@ -1,0 +1,12 @@
+# list: game_message_network_turn
+# category: game_messages
+# about: 
+This may take several minutes.
+Please wait while the galaxy is being constructed.
+Receiving Starmap
+
+
+Receiving Data for Turn ^0
+
+^1, Prepare for Turn ^0.
+Please wait while Turn ^0 is Processed.

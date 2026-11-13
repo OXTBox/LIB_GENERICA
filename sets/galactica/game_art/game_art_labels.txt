@@ -1,0 +1,8 @@
+# list: game_art_labels
+# category: game_art
+# about: A list of image labels used in the game, might be "muncher","ghost","coin","powerUp", etc, file names might change but this will be the guide to what is expected
+Picture
+Image
+Sprite
+Icon
+Logo
