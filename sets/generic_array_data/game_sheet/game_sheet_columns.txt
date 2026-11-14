@@ -1,0 +1,11 @@
+# list: game_sheet_columns
+# category: game_sheet
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+row
+name
+side
+count
+level
+x
+y
+note

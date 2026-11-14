@@ -1,0 +1,5 @@
+# list: game_message_hero
+# category: game_messages
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+A thing of level 9 appears at %.
+Nobody planned for this.

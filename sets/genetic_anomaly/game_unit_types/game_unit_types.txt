@@ -1,7 +1,7 @@
 # list: game_unit_types
 # category: game_unit_types
-# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_unit_types.
-agent
-squad
-node
-staging point
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+person
+circle
+town
+sighting

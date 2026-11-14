@@ -1,0 +1,10 @@
+# list: game_rank_labels
+# category: game_ranks
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+Witness
+Dreamer
+Sensitive
+Medium
+Psychic
+Adept
+Oracle

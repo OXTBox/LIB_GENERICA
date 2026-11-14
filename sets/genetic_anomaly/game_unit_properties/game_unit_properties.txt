@@ -1,20 +1,20 @@
 # list: game_unit_properties
 # category: game_unit_properties
-# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_unit_properties.
-Vector:
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+Town:
 Position:
-Research:
-Agent Training:
+Strangeness:
+Training:
 Mutation
-Agents
-Research
-Samples:
+People
+Strangeness
+Witnesses:
 Damage:
 Speed:
 Power:
 Build:
-Nothing selected on the detector map
-Staging point selected.
-Reposition it by dragging, or delete it by hitting the <delete> key.
-DISBANDED
+No town selected
+Sighting selected.
+Move it by dragging, or delete it with <delete>.
+VANISHED
 Send to:

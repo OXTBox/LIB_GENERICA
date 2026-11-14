@@ -1,0 +1,6 @@
+# list: game_message_defeat
+# category: game_messages
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+Side 2 wins.
+You hold nothing.
+You have lost.

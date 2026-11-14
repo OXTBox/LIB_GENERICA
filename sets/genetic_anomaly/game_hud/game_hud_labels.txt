@@ -1,0 +1,12 @@
+# list: game_hud_labels
+# category: game_hud
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+BUREAU
+STRANGENESS
+LOCALS
+NIGHT
+WATCHING
+CLICK A BUREAU TOWN, THEN ANOTHER TOWN
+TAB: SHEET   G: GENERIC WORDS   SPACE: PAUSE
+SENT A CIRCLE
+PAUSED

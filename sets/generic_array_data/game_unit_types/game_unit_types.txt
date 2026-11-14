@@ -1,0 +1,7 @@
+# list: game_unit_types
+# category: game_unit_types
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+thing
+group
+place
+point

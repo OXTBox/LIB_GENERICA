@@ -1,6 +1,6 @@
 # list: game_message_victory
 # category: game_messages
-# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_message_victory.
-The anomaly is contained.
-Every node is secured.
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+The Strangeness is contained.
+Every town sleeps again.
 You have won.

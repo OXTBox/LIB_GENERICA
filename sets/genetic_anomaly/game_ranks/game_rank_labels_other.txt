@@ -1,0 +1,10 @@
+# list: game_rank_labels_other
+# category: game_ranks
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+Shade
+Visitor
+Cryptid
+Changeling
+Walker
+Elder
+The Tall One

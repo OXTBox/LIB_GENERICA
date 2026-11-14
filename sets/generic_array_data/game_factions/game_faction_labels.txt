@@ -1,0 +1,8 @@
+# list: game_faction_labels
+# category: game_factions
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+Side 1
+Side 2
+Side 3
+Side 4
+Side 5

@@ -1,0 +1,19 @@
+# list: game_name_parts
+# category: game_names
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+A
+B
+C
+D
+E
+F
+G
+H
+K
+L
+M
+N
+P
+R
+S
+T

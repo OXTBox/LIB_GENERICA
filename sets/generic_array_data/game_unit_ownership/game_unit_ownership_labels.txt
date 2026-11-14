@@ -1,0 +1,9 @@
+# list: game_unit_ownership_labels
+# category: game_unit_ownership
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+nobody
+unowned
+you
+the *
+* %
+Groups

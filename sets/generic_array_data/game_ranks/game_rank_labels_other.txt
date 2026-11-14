@@ -1,0 +1,10 @@
+# list: game_rank_labels_other
+# category: game_ranks
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+other 1
+other 2
+other 3
+other 4
+other 5
+other 6
+other 7

@@ -1,0 +1,8 @@
+# list: game_events_text
+# category: game_events
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+You took % from #!
+You lost % to *.
+* took % from #.
+You hold every place. Last fight at % against #!
+Your last place % was lost to *.

@@ -1,0 +1,29 @@
+# list: game_name_parts
+# category: game_names
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+Ash
+Bel
+Cor
+Dun
+Elm
+Fen
+Gal
+Hol
+Ire
+Kel
+Mor
+Nor
+Pell
+Rav
+Sto
+Wick
+ford
+ton
+vale
+moor
+well
+brook
+hollow
+stead
+by
+crest

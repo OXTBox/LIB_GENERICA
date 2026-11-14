@@ -1,0 +1,6 @@
+# list: game_message_defeat
+# category: game_messages
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+The Strangeness has every town.
+The Bureau is closed.
+You have lost.

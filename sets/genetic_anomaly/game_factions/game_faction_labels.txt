@@ -1,8 +1,8 @@
 # list: game_faction_labels
 # category: game_factions
-# about: DRAFT (Claude, 2026-11-13) for the owner to correct: Genetic Anomaly Detector words over Galactica's game_faction_labels.
-Lab
-Consortium
-Institute
-Strain
-Collective
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+The Bureau
+The Strangeness
+The Locals
+The Press
+The Skeptics

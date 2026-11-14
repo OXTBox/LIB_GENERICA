@@ -1,0 +1,11 @@
+# list: game_sheet_columns
+# category: game_sheet
+# about: GENETIC ANOMALY (Claude draft, 2026-11-13) over generic_array_data: people with paranormal powers, real and imagined.
+#
+town
+held by
+people
+strangest
+x
+y
+rumour

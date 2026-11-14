@@ -1,0 +1,20 @@
+# list: game_unit_properties
+# category: game_unit_properties
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+Where:
+Position:
+Level:
+Training:
+Change
+Things
+Level
+Count:
+Damage:
+Speed:
+Power:
+Build:
+Nothing selected
+Point selected.
+Move it by dragging, or delete it with <delete>.
+GONE
+Send to:

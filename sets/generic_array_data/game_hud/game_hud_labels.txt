@@ -1,0 +1,12 @@
+# list: game_hud_labels
+# category: game_hud
+# about: GENERIC ARRAY DATA (Claude, 2026-11-13): the most generic word for everything; every theme sits on this.
+YOU
+OTHER
+NOBODY
+TURN
+SELECTED
+CLICK ONE OF YOURS, THEN ANOTHER PLACE
+TAB: SHEET   G: WORDS   SPACE: PAUSE
+SENT
+PAUSED
