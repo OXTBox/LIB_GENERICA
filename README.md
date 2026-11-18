@@ -53,3 +53,14 @@ In a Sequencer `.seq` file: `{@game_events_text:1}` (the game loads the set firs
 
 Make `sets/<theme>/`, copy only the lists you want to change from `galactica/` (same folder and
 file names), edit the words. Load with `Gen.Load sets, "<theme>", "galactica"`.
+
+## Word lists live in LIB_LISTS (the owner, 18 Nov 2026)
+
+"Its noun and role word sets would go to ... LIB_LISTS and then referenced by LIB_GENERICA as the
+LIST might grow/change outside of the sub-projects that use them."
+
+So: a list of words that may grow (nouns, roles, names, places) goes into `~/projects/LIB_LISTS`
+as `<set>/<list>.txt`, listed in its `CATALOG.md`. A Generica set **refers** to it by that name;
+it never keeps a copy. Generica's own files stay the game's labels and sentences (the 533 Galactica
+labels and their themes). Not built yet: the loaders reading a reference (TODO A-66).
+
