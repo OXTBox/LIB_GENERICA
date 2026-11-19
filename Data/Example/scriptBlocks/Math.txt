@@ -1,6 +1,6 @@
 -- script block: Math (handlers whose names start with "Math"; GAD scriptBlocks)
--- source: GAD_WORKING_03_16_2026
--- handlers: 17
+-- source: GAD_WORKING_03_16_2026, Scott_Rossi_nine_ball
+-- handlers: 20
 -- (INACTIVE example: plain text, the script of nothing until applied on purpose)
 
 ------------------------------------------------------------ from GAD_WORKING_03_16_2026
@@ -178,3 +178,51 @@ put "" into gErrorIndent
 	   return tChange
 end Math.randomAIShift
 
+------------------------------------------------------------ from Scott_Rossi_nine_ball (physics by Jim Hurley; stack from Scott Rossi's collection; credit both)
+-- Ball collisions and geometry. Equal-mass elastic collision: resetVel turns both velocities into the frame of the line between centres and swaps the radial parts.
+
+function resetVel  xx,yy,xx',yy',vxx,vyy,vxx',vyy'
+  put xx,yy into pme
+  put xx',yy' into pOther
+  put theLineAngle(pme,pOther) into tCentersAngle
+  put tCentersAngle into tCa
+  put xx,yy,xx+vxx,yy+vyy into tVelVector
+  put theLineAngle(tVelVector) into tVa
+  put sqrt(vxx'*vxx'+vyy'*vyy') into v'
+  put sqrt(vxx*vxx+vyy*vyy) into v
+  
+  put xx',yy',xx'+vxx',yy'+vyy' into tVelVector'
+  put theLineAngle(tVelVector') into tVa'
+  --Angle of the vVector relative to the line joining centers
+  put tVa - tCa into tVrA
+  put tVa'- tCa into tVrA'
+  
+  put v*cos(tVrA) into vR'
+  put v*sin(tVrA) into vT
+  put v'*cos(tVrA') into vR
+  put  v'*sin(tVrA') into vT'
+  
+  put vR*cos(tCa) - vT*sin(tCa) into vxx
+  put vR*sin(tCa) + vT*cos(tCa) into vyy
+  
+  put vR'*cos(tCa) - vT'*sin(tCa) into vxx'
+  put vR'*sin(tCa) + vT'*cos(tCa) into vyy'
+  return vxx,vyy,vxx',vyy'
+end resetVel
+
+function theLineAngle p1,p2
+  --Angle of line defined by the two points p1 and p2
+  get the paramCount
+  if it is 1 then
+    put item 3 to 4 of p1 into p2
+    put item 1 to 2 of p1 into p1
+  end if
+  put item 1 of p2 - item 1 of p1 into dx
+  put item 2 of p2 - item 2 of p1 into dy
+  put atan2(dy,dx) into tAngle
+  return tAngle
+end theLineAngle
+
+function theDist xx,yy,xx',yy'
+  return sqrt((xx-xx')^2 + (yy-yy')^2)
+end theDist

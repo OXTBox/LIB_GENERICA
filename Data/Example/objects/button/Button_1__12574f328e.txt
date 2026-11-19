@@ -1,0 +1,46 @@
+-- generic button script
+-- source: Scott_Rossi_nine_ball
+-- used by 1 object(s): button "Button 1" (id 1076)
+-- handlers: mouseUP
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseUP
+  --  repeat with i = 1 to 15
+  --    put "ball" & i into tName
+  --    set the script of button tName to the script of button "ball0"
+  --  end repeat
+  --  end mouseUP
+  
+  put the loc of this card into tCardLoc
+  put tCardLoc into tSpotLoc
+
+  
+  put  the width of grc "Cushion" into wCushion
+  subtract wCushion/4 from item 1 of tSpotLoc
+  set the loc of button "ball0" to tSpotLoc
+  add wCushion/8 to item 1 of tCardLoc
+  set the loc of button "ball1" to tCardLoc
+  put the loc of button "ball1" into tLoc
+  put  item 1 of tLoc into x0
+  put  item 2 of tLoc into y0
+  put 22 into dy
+  put 37 into dx
+  set the loc of button "ball2" to x0+dx,y0-dy
+  set the loc of button "ball3" to x0+dx,y0+dy
+  
+  set the loc of button "ball4" to x0+2*dx,y0-2*dy
+  set the loc of button "ball5" to x0+2*dx,y0+0*dy
+  set the loc of button "ball6" to x0+2*dx,y0+2*dy
+  
+  set the loc of button "ball7" to x0+3*dx,y0-3*dy
+  set the loc of button "ball8" to x0+3*dx,y0-1*dy
+  set the loc of button "ball9" to x0+3*dx,y0+1*dy
+  set the loc of button "ball10" to x0+3*dx,y0+3*dy
+  
+  set the loc of button "ball11" to x0+4*dx,y0-4*dy
+  set the loc of button "ball12" to x0+4*dx,y0-2*dy
+  set the loc of button "ball13" to x0+4*dx,y0-0*dy
+  set the loc of button "ball14" to x0+4*dx,y0+2*dy
+  set the loc of button "ball15" to x0+4*dx,y0+4*dy
+  
+end mouseUP

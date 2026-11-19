@@ -1,0 +1,70 @@
+-- generic button script
+-- source: Scott_Rossi_nine_ball
+-- used by 1 object(s): button "Ball0" (id 1130)
+-- handlers: mouseDown, mouseUP, mouseLeave, mouseMove
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+local myName,W,du,dv
+
+on mouseDown
+  if the optionKey is down then
+    grab me
+    exit mouseDown
+  end if
+  
+  put the width of this card into W
+  put the name of me into myName
+end mouseDown
+
+on mouseUP
+  if myName is "" then exit mouseUp
+  set the points of grc "v" to ""
+  set the points of grc "vExtension" to ""
+  repeat with i = 1 to 15
+    put "scatCross" & i into tName
+    set the visible of grc tName to false
+  end repeat
+  startStroke du/25,dv/25
+  put "" into myName
+end mouseUP
+
+on mouseLeave
+  mouseUP
+end mouseLeave
+
+on mouseMove u,v
+  if myName is empty then exit mouseMOve
+  put the loc of me into tLoc
+  put item 1 of tLoc into xLoc
+  put item 2 of tLoc into yLoc
+  put u-xLoc into du
+  put v - yLoc into dv
+  put sqrt(du*du+dv*dv)/50 into tVel
+  put atan2(dv,du) into tAngle
+  set the points of grc "v" to tLoc & cr& u,v
+  --put the points of grc "v" into msg box
+  put round(xLoc+W*cos(tAngle)),round(yLoc+W*sin(tAngle)) into tExtensionLoc
+  put tLoc & cr & tExtensionLoc into tExtensionPoints
+  set the visible of grc "vExtension" to true
+  set the points of grc "vExtension" to tExtensionPoints
+  --  put item 1 of tLoc,item 2 of tLoc,u,v into tVelLine
+  --  if the showTrajectory of this card is true then
+  --
+  --    put the loc of grc "target"  into tTargetLoc
+  --    put theCollPt(tTargetLoc,tVelLine) into tCollLoc
+  --    if tCollLoc is not "" then
+  --      put item 1 of tTargetLoc into xT
+  --      put item 2 of tTargetLoc into yT
+  --      put item 1 of tCollLoc into xC
+  --      put item 2 of tCollLoc into yC
+  --      put xC + W*(xT-xC) into xTraj
+  --      put yC + W*(yT-yC) into yTraj
+  --      put xTraj,yTraj into tTrajectoryEnd
+  --      put theRound(tCollLoc) & cr & theRound(tTrajectoryEnd) into tTrajectoryPoints
+  --      set the points of grc "trajectory" to tTrajectoryPoints
+  --    else
+  --      set the points of grc "trajectory" to ""
+  --    end if
+  --  end if
+  
+end mouseMove

@@ -1,0 +1,169 @@
+-- generic button script
+-- source: Scott_Rossi_nine_ball
+-- used by 1 object(s): button "Button 1" (id 1043)
+-- handlers: mouseUP, startStroke, doInit, doMove, resetVel, theLineAngle, theDist
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+local x,y,vx,vy,R, W,H,tSpeedReduction,tBallList,tCushion,k,v0
+
+
+on mouseUP
+  
+  startStroke 9,0
+end mouseUP
+
+
+on startStroke tVx,tVy
+  set the loc of grc "cushion" to the loc of this card
+  put tVx into x[0]
+  put tVy into y[0]
+  doInit
+  doMove
+end startStroke
+
+on doInit
+  put 0 into k
+  put .996 into tSpeedReduction
+  put the width of button "ball0"/2 into R
+  put 20 into tCushion
+  put the width of this stack into W
+  put the height of this stack into H
+  put the loc of button "ball0" into tLoc
+  put item 1 of tLoc into x[0]
+  put item 2 of tLoc into y[0]
+  repeat with i = 1 to 15
+    put "ball" & i into tName
+    if there is a button tName then
+      put 0 into vx[i]
+      put 0 into vy[i]
+      put item 1 of the loc of button tName into x[i]
+      put item 2 of the loc of button tName into y[i]
+    end if
+  end repeat
+--  put 9 into vx[0]
+--  put 0 into vy[0]
+  put sqrt(vx[0]^2+vy[0]^2) into v0
+end doInit
+
+
+on doMove
+  --repeat until the shiftKey is down
+  repeat trunc(v0*70) times
+  if the shiftkey is down then 
+    put k into msg box
+    exit doMove
+  end if
+  add 1 to k
+  repeat with i = 0 to 15
+    put "ball" & i into tMoving
+     
+    add vx[i] to x[i]
+    add vy[i] to y[i]
+    set the loc of button tMoving to x[i],y[i]
+     
+    put "" into tDistList
+    repeat with j = i+1 to 15
+      put "ball" & j into tResting
+      put  theDist(x[i],y[i],x[j],y[j]) into s
+      if s < 2*r then
+        put s& comma after tDistList
+        put j into tCollArray[s] 
+      end if
+    end repeat
+     
+    if tDistList is not empty then
+      put min(tDistList) into sMin
+      put tCollArray[sMin] into j 
+       
+      subtract vx[i] from x[i]
+      subtract vy[i] from y[i]
+      subtract vx[j] from x[j]
+      subtract vy[j] from y[j]
+      
+      put resetVel(x[i],y[i],x[j],y[j],vx[i],vy[i],vx[j],vy[j]) into tNewVels
+      put item 1 of tNewVels into vx[i]
+      put item 2 of tNewVels into vy[i]
+      put item 3 of tNewVels into vx[j]
+      put item 4 of tNewVels into vy[j]
+       
+    end if
+     
+    if x[i]-tCushion<R or x[i]+R+tCushion>W then 
+      subtract vx[i] from x[i] 
+      multiply vx[i] by -1
+    end if
+     
+    if y[i]-tCushion< R or y[i]+R+tCushion > H  then 
+      subtract vy[i] from y[i] 
+      multiply vy[i] by -1
+    end if
+    multiply vx[i] by tSpeedReduction
+    multiply vy[i] by tSpeedReduction
+     
+     
+    
+  end repeat
+  unlock screen
+--  if (vx[0]^2+vy[0]^2) < .0016 then 
+--    --set the loc of grc "myImage" to the loc of me
+--    --      if the showImpactCircle of this card is true then
+--    --        show grc "myImage"
+--    --else hide grc "myImage"
+--    exit doMove
+--  end if 
+  
+  --send "doMove" to me in 1 millisec
+  end repeat
+end doMove
+
+
+
+
+
+
+
+function resetVel  xx,yy,xx',yy',vxx,vyy,vxx',vyy'
+  put xx,yy into pme
+  put xx',yy' into pOther
+  put theLineAngle(pme,pOther) into tCentersAngle
+  put tCentersAngle into tCa
+  put xx,yy,xx+vxx,yy+vyy into tVelVector
+  put theLineAngle(tVelVector) into tVa
+  put sqrt(vxx'*vxx'+vyy'*vyy') into v'
+  put sqrt(vxx*vxx+vyy*vyy) into v
+
+  put xx',yy',xx'+vxx',yy'+vyy' into tVelVector'
+  put theLineAngle(tVelVector') into tVa'
+  --Angle of the vVector relative to the line joining centers
+  put tVa - tCa into tVrA 
+  put tVa'- tCa into tVrA'
+  
+  put v*cos(tVrA) into vR'
+  put v*sin(tVrA) into vT
+  put v'*cos(tVrA') into vR
+  put  v'*sin(tVrA') into vT'
+  
+  put vR*cos(tCa) - vT*sin(tCa) into vxx
+  put vR*sin(tCa) + vT*cos(tCa) into vyy
+  
+  put vR'*cos(tCa) - vT'*sin(tCa) into vxx'
+  put vR'*sin(tCa) + vT'*cos(tCa) into vyy'
+  return vxx,vyy,vxx',vyy'
+end resetVel
+
+function theLineAngle p1,p2
+  --Angle of line defined by the two points p1 and p2
+  get the paramCount
+  if it is 1 then
+    put item 3 to 4 of p1 into p2
+    put item 1 to 2 of p1 into p1
+  end if
+  put item 1 of p2 - item 1 of p1 into dx
+  put item 2 of p2 - item 2 of p1 into dy
+  put atan2(dy,dx) into tAngle
+  return tAngle
+end theLineAngle
+
+function theDist xx,yy,xx',yy'
+  return sqrt((xx-xx')^2 + (yy-yy')^2)
+end theDist

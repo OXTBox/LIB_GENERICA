@@ -1,0 +1,31 @@
+-- generic button script
+-- source: Scott_Rossi_nine_ball
+-- used by 1 object(s): button "Button 1" (id 1075)
+-- handlers: mouseUP
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseUP
+  repeat with i = 1 to the number of images
+    if "number" is in the name of image i then
+      set the visible of image i  to false
+    end if
+  end repeat
+end mouseuP
+  set the loc of grc "cushion" to the loc of this card
+  --set the script of grc "ball2" to the script of grc "ball1"
+  set the velX of button "cueball" to 1
+  set the velY of button "cueball" to 0
+  --   set the velX of grc "ball2" to 1
+  --  set the velY of grc "ball2" to -1
+  repeat with i = 1 to 15
+    put "ball" & i into tName
+    if there is a button tName then
+      set the script of button tName to the script of button "cueBall"
+      set the velX of button tName to 0
+      set the velY of button tName to 0
+    end if
+    send "mouseUP" to button "cueBall"
+    send "mouseUP" to button "ball1"
+    send "mouseUP" to button "ball12"
+  end repeat
+end mouseUP

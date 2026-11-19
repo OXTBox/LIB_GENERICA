@@ -1,0 +1,9 @@
+-- generic button script
+-- source: Scott_Rossi_nine_ball
+-- used by 9 object(s): button "Ball1" (id 1119); button "Ball2" (id 1122); button "Ball3" (id 1123); button "Ball4" (id 1124); button "Ball5" (id 1125); button "Ball6" (id 1126) ...
+-- handlers: mouseDown
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on mouseDown
+  grab me
+end mouseDown

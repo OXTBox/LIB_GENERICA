@@ -1,0 +1,37 @@
+-- generic button script
+-- source: Scott_Rossi_nine_ball
+-- used by 1 object(s): button "Help" (id 1029)
+-- handlers: menuPick
+-- (INACTIVE example: plain text, the script of nothing until applied on purpose)
+
+on menuPick pWhich
+  switch pWhich
+  case "What's inside"
+    show field "WhatsInside"
+ set the layer of field "whatsInside" to top
+    break
+  case "About"
+    open stack "about"
+    show stack "about"
+    --Insert script for About menu item here
+    break
+  case "Reset cue ball"
+    put the loc of this card into tLoc
+    put 200 into item 1 of tLoc
+    set the loc of button "ball0"  to tLoc
+--    set the width of button "ball" to 40
+--    set the height of grc "ball" to  40
+    break
+  case "Instructions"
+    show field "instructions"
+    set the layer of field "instructions" to top
+    break
+  case "Preferences"
+    --Insert script for Preferences menu item here
+    open stack "preferences"
+    show stack "preferences"
+    break
+    
+    
+  end switch
+end menuPick
