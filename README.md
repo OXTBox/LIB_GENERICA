@@ -64,3 +64,9 @@ as `<set>/<list>.txt`, listed in its `CATALOG.md`. A Generica set **refers** to 
 it never keeps a copy. Generica's own files stay the game's labels and sentences (the 533 Galactica
 labels and their themes). Not built yet: the loaders reading a reference (TODO A-66).
 
+
+## Licence
+
+GPL-3.0 (see `LICENSE`), because the xTalk work here is built on the GPL-licensed LiveCode Community 9 engine. Copyright (c) 2026 xAction.
+
+The Python files (`.py`) and other material that is not xTalk are also offered under the MIT licence, Copyright (c) 2026 xAction: you may use them under either licence.
